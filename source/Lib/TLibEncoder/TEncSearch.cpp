@@ -6870,6 +6870,9 @@ Bool TEncSearch::isBlockVectorValid( Int xPos, Int yPos, Int width, Int height, 
     }
     else
     {
+#if SCM_V0066_CIP_IBC_UNI
+      return true;
+#else
       if(!pcCU->getSlice()->getPPS()->getConstrainedIntraPred() || xCIPIBCSearchPruning(pcCU, xPos + xBv, yPos + yBv, width, height))
       {
         return true;
@@ -6878,6 +6881,7 @@ Bool TEncSearch::isBlockVectorValid( Int xPos, Int yPos, Int width, Int height, 
       {
         return false;
       }
+#endif
     }
   }
 
@@ -6889,6 +6893,9 @@ Bool TEncSearch::isBlockVectorValid( Int xPos, Int yPos, Int width, Int height, 
   // in the same CTU line
   if ( refRightX>>ctuSizeLog2 < xPos>>ctuSizeLog2 )
   {
+#if SCM_V0066_CIP_IBC_UNI
+    return true;
+#else
     if(!pcCU->getSlice()->getPPS()->getConstrainedIntraPred() || xCIPIBCSearchPruning(pcCU, xPos + xBv, yPos + yBv, width, height))
     {
       return true;
@@ -6897,6 +6904,7 @@ Bool TEncSearch::isBlockVectorValid( Int xPos, Int yPos, Int width, Int height, 
     {
       return false;
     }
+#endif
   }
   if ( refRightX>>ctuSizeLog2 > xPos>>ctuSizeLog2 )
   {
@@ -6914,6 +6922,9 @@ Bool TEncSearch::isBlockVectorValid( Int xPos, Int yPos, Int width, Int height, 
     return false;
   }
 
+#if SCM_V0066_CIP_IBC_UNI
+  return true;
+#else
   if(!pcCU->getSlice()->getPPS()->getConstrainedIntraPred() || xCIPIBCSearchPruning(pcCU, xPos + xBv, yPos + yBv, width, height))
   {
     return true;
@@ -6922,6 +6933,7 @@ Bool TEncSearch::isBlockVectorValid( Int xPos, Int yPos, Int width, Int height, 
   {
     return false;
   }
+#endif
 }
 
 // based on predInterSearch()
@@ -8221,6 +8233,7 @@ Void TEncSearch::xSetIntraSearchRange ( TComDataCU* pcCU, TComMv& cMvPred, UInt 
   pcCU->clipMv        ( rcMvSrchRngRB );
 }
 
+#if !SCM_V0066_CIP_IBC_UNI
 Bool TEncSearch::xCIPIBCSearchPruning( TComDataCU* pcCU, Int refPixlX, Int refPixlY, Int roiWidth, Int roiHeight )
 {
   const Int iMaxCuWidth   = pcCU->getSlice()->getSPS()->getMaxCUWidth();
@@ -8273,6 +8286,7 @@ Bool TEncSearch::xCIPIBCSearchPruning( TComDataCU* pcCU, Int refPixlX, Int refPi
 
   return true;
 }
+#endif
 
 Void TEncSearch::xIntraBCSearchMVCandUpdate(Distortion  uiSad, Int x, Int y, Distortion* uiSadBestCand, TComMv* cMVCand)
 {

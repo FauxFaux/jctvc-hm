@@ -3729,10 +3729,12 @@ Bool TComDataCU::xGetColMVP( const RefPicList eRefPicList, const Int ctuRsAddr, 
     return false;
   }
 
+#if !SCM_V0066_CIP_IBC_UNI
   if ( getSlice()->getPPS()->getConstrainedIntraPred() && (getSlice()->getRefPic(eRefPicList, refIdx)->getPOC() == getSlice()->getPOC()) )
   {
     return false;
   }
+#endif
 
   RefPicList eColRefPicList = getSlice()->getCheckLDC() ? eRefPicList : RefPicList(getSlice()->getColFromL0Flag());
   Int iColRefIdx            = pColCtu->getCUMvField(RefPicList(eColRefPicList))->getRefIdx(absPartAddr);
