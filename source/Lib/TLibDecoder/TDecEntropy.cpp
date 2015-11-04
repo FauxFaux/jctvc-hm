@@ -322,7 +322,24 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       }
     }
 
+#if SCM_V0048_BIPRED_REST_MV_REF
+    Bool b8x8BiPredRestricted = false;
+    if(pcCU->getInterDir(uiSubPartIdx) == 3)
+    {
+      TComMv cMv[2];
+      Int    iRefIdxBi[2];
+      cMv[0] = pcCU->getCUMvField( REF_PIC_LIST_0 )->getMv(uiSubPartIdx);
+      cMv[1] = pcCU->getCUMvField( REF_PIC_LIST_1 )->getMv(uiSubPartIdx);
+      iRefIdxBi[0] = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx(uiSubPartIdx);
+      iRefIdxBi[1] = pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx(uiSubPartIdx);
+      b8x8BiPredRestricted = pcCU->is8x8BipredRestriction(cMv[0],cMv[1],iRefIdxBi[0],iRefIdxBi[1]);                
+      if(pcSubCU->getWidth(0) <= 8 && pcSubCU->getHeight(0) <= 8)
+        assert(b8x8BiPredRestricted==false);      
+    }        
+    if ( (pcCU->getInterDir(uiSubPartIdx) == 3) && pcSubCU->isBipredRestriction(uiPartIdx,b8x8BiPredRestricted) )
+#else
     if ( (pcCU->getInterDir(uiSubPartIdx) == 3) && pcSubCU->isBipredRestriction(uiPartIdx) )
+#endif 
     {
       pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMv( TComMv(0,0), ePartSize, uiSubPartIdx, uiDepth, uiPartIdx);
       pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( -1, ePartSize, uiSubPartIdx, uiDepth, uiPartIdx);

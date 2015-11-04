@@ -3274,27 +3274,54 @@ Void TComDataCU::fillMvpCand ( const UInt partIdx, const UInt partAddr, const Re
 
 Void TComDataCU::xRestrictBipredMergeCand( UInt puIdx, TComMvField* mvFieldNeighbours, UChar* interDirNeighbours, Int numValidMergeCand )
 {
+#if SCM_V0048_BIPRED_REST_MV_REF==0
   if ( isBipredRestriction(puIdx) )
+#endif 
   {
     for( UInt mergeCand = 0; mergeCand < numValidMergeCand; ++mergeCand )
     {
+#if SCM_V0048_BIPRED_REST_MV_REF
       if ( interDirNeighbours[mergeCand] == 3 )
       {
+      Bool b8x8BiPredRestricted = is8x8BipredRestriction(
+        mvFieldNeighbours[(mergeCand << 1)].getMv(),
+        mvFieldNeighbours[(mergeCand << 1) + 1].getMv(),
+        mvFieldNeighbours[(mergeCand << 1)].getRefIdx(),
+        mvFieldNeighbours[(mergeCand << 1) + 1].getRefIdx()
+        );
+ 
+      if (isBipredRestriction(puIdx,b8x8BiPredRestricted))
+      {
+#else
+      if ( interDirNeighbours[mergeCand] == 3 )
+      {
+#endif 
         interDirNeighbours[mergeCand] = 1;
         mvFieldNeighbours[(mergeCand << 1) + 1].setMvField(TComMv(0,0), -1);
       }
+#if SCM_V0048_BIPRED_REST_MV_REF
+     }
+#endif 
     }
   }
 }
 
+#if SCM_V0048_BIPRED_REST_MV_REF
+Bool TComDataCU::isBipredRestriction( UInt puIdx, Bool bCheckIBCRestricion) const
+#else
 Bool TComDataCU::isBipredRestriction(UInt puIdx) const
+#endif 
 {
   Int width = 0;
   Int height = 0;
   UInt partAddr;
 
   getPartIndexAndSize( puIdx, partAddr, width, height );
+#if SCM_V0048_BIPRED_REST_MV_REF
+  if(bCheckIBCRestricion)
+#else
   if(getSlice()->getPPS()->getPpsScreenExtension().getUseIntraBlockCopy() && !getSlice()->getUseIntegerMv())
+#endif 
   {
     if(getWidth(0) <= 8 && getHeight(0) <= 8)
     {
@@ -3311,6 +3338,32 @@ Bool TComDataCU::isBipredRestriction(UInt puIdx) const
 
   return false;
 }
+
+#if SCM_V0048_BIPRED_REST_MV_REF
+  Bool TComDataCU::is8x8BipredRestriction(TComMv mvL0,TComMv mvL1, Int iRefIdxL0, Int iRefIdxL1 ) const
+  {
+    if(iRefIdxL0 < -1 || iRefIdxL0 >= MAX_NUM_REF)
+      iRefIdxL0 = -1;
+    if(iRefIdxL1 < -1 || iRefIdxL1 >= MAX_NUM_REF)
+      iRefIdxL1 = -1;    
+    Bool b8x8BiPredRestricted = false;
+    Int RefPOCL0 = -1;
+    Int RefPOCL1 = -1;
+    if(iRefIdxL0 >=0 && iRefIdxL1 >=0)
+    {
+      RefPOCL0 = getSlice()->getRefPic(REF_PIC_LIST_0,iRefIdxL0)->getPOC();
+      RefPOCL1 =  getSlice()->getRefPic(REF_PIC_LIST_1,iRefIdxL1)->getPOC();
+      Bool mvL0Int = (((mvL0.getHor()&0x3)==0) && ((mvL0.getVer()&0x3)==0));
+      Bool mvL1Int = (((mvL1.getHor()&0x3)==0) && ((mvL1.getVer()&0x3)==0));
+      Bool IdenticalMV = ((mvL0==mvL1) && (RefPOCL0==RefPOCL1));      
+      b8x8BiPredRestricted = (
+        !mvL0Int && !mvL1Int && !IdenticalMV && 
+        (getSlice()->getPPS()->getPpsScreenExtension().getUseIntraBlockCopy()) 
+        );
+    }
+    return b8x8BiPredRestricted; 
+  }
+#endif 
 
 Bool TComDataCU::hasAssociatedACTFlag( UInt uiAbsPartIdx )
 {

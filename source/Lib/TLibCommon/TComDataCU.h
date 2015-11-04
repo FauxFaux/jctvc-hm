@@ -518,7 +518,12 @@ public:
   Bool          isIntra                       ( UInt uiPartIdx ) const                                     { return m_pePredMode[ uiPartIdx ] == MODE_INTRA; }
   Bool          isInter                       ( UInt uiPartIdx ) const                                     { return m_pePredMode[ uiPartIdx ] == MODE_INTER; }
   Bool          isSkipped                     ( UInt uiPartIdx ) const; ///< returns true, if the partiton is skipped
+#if SCM_V0048_BIPRED_REST_MV_REF
+  Bool          isBipredRestriction( UInt puIdx, Bool bCheckIBCRestricion =false ) const;
+  Bool          is8x8BipredRestriction(TComMv mvL0,TComMv mvL1, Int iRefIdxL0, Int iRefIdxL1 ) const;  
+#else
   Bool          isBipredRestriction           ( UInt puIdx     ) const;
+#endif 
   Void          xRestrictBipredMergeCand( UInt puIdx, TComMvField* mvFieldNeighbours, UChar* interDirNeighbours, Int numValidMergeCand );
   Bool          hasAssociatedACTFlag ( UInt uiAbsPartIdx );
 
