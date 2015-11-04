@@ -180,6 +180,7 @@
 #define SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC     0 ///< JCTVC-U0181: storage of both versions of the current decoded picture into the DPB, treating pictures with in-loop filtering on/off differently, and increase the value of maxDpbPicBuf equal to 7 for profiles supporting IBC
 #define SCM_V0066_CIP_IBC_UNI                            1 ///< JCTVC-V0066: Remove special treatments of IBC as different from inter in the case of CIP. 
 #define SCM_V0048_BIPRED_REST_MV_REF                     1 ///< JCTVC-V0048: Relax 8x8 bi-bred restriction based on mv's and temporal referencing.
+#define SCM_V0056_BIPRED_REST_TWO_VERS                   1 ///< JCTVC-V0048: Relax 8x8 bi-bred restriction based on two version flag (SAO/deblock).
 
 //------------------------------------------------
 // Derived macros
