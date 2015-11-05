@@ -182,6 +182,7 @@
 #define SCM_V0048_BIPRED_REST_MV_REF                     1 ///< JCTVC-V0048: Relax 8x8 bi-bred restriction based on mv's and temporal referencing.
 #define SCM_V0056_BIPRED_REST_TWO_VERS                   1 ///< JCTVC-V0056: Relax 8x8 bi-bred restriction based on two version flag (SAO/deblock).
 #define SCM_V0041_RESTRICT_ESCAPE_RANGE                  1 ///< JCTVC-V0041: constrain the range of escape values
+#define SCM_V0042_ZERO_PPS_INITIALIZER                   1 ///< JCTVC-V0042: allow zero size palette in PPS
 
 //------------------------------------------------
 // Derived macros

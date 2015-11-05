@@ -319,16 +319,30 @@ Void TEncCavlc::codePPS( const TComPPS* pcPPS )
                 WRITE_SVLC( (ppsScreenExtension.getActQpOffset( COMPONENT_Cb ) + 5), "pps_act_cb_qp_offset_plus5" );
                 WRITE_SVLC( (ppsScreenExtension.getActQpOffset( COMPONENT_Cr ) + 3), "pps_act_cr_qp_offset_plus3" );
               }
+
+#if SCM_V0042_ZERO_PPS_INITIALIZER
+              UInt paletteInitializerPresentFlag = ppsScreenExtension.getNumPLTPred() ? 1 : 0;
+              WRITE_FLAG( paletteInitializerPresentFlag, "palette_predictor_initializer_flag" );
+              if( paletteInitializerPresentFlag )
+#else
               WRITE_FLAG( (ppsScreenExtension.getNumPLTPred() ? 1 : 0), "palette_predictor_initializer_flag" );
               if ( ppsScreenExtension.getNumPLTPred() )
+#endif
               {
+#if SCM_V0042_ZERO_PPS_INITIALIZER
+                WRITE_UVLC( ppsScreenExtension.getNumPLTPred(), "pps_num_palette_entries" );
+                if( ppsScreenExtension.getNumPLTPred() > 0 )
+                {
+#endif
                 WRITE_FLAG( ppsScreenExtension.getMonochromePaletteFlag(), "monochrome_palette_flag" );
                 WRITE_UVLC( ppsScreenExtension.getPalettePredictorBitDepth( CHANNEL_TYPE_LUMA )  -8, "luma_bit_depth_entry_minus8" );
                 if ( !ppsScreenExtension.getMonochromePaletteFlag() )
                 {
                   WRITE_UVLC( ppsScreenExtension.getPalettePredictorBitDepth( CHANNEL_TYPE_CHROMA ) - 8, "chroma_bit_depth_entry_minus8" );
                 }
+#if !SCM_V0042_ZERO_PPS_INITIALIZER
                 WRITE_UVLC( ppsScreenExtension.getNumPLTPred()-1, "num_palette_entries_minus1" );
+#endif
 
                 for ( Int k=0; k < (ppsScreenExtension.getMonochromePaletteFlag() ? 1 : 3); k++ )
                 {
@@ -337,6 +351,9 @@ Void TEncCavlc::codePPS( const TComPPS* pcPPS )
                     xWriteCode( ppsScreenExtension.getPLTPred( k )[j], ppsScreenExtension.getPalettePredictorBitDepth( toChannelType( ComponentID( k ) ) ) );
                   }
                 }
+#if SCM_V0042_ZERO_PPS_INITIALIZER
+                }
+#endif
               }
             }
             break;
