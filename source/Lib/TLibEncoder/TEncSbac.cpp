@@ -774,7 +774,11 @@ Void TEncSbac::codePLTModeSyntax(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNum
         if (iLastRunPos != uiIdx)
         {
           uiNumIndices -= (pSPoint[uiTraIdx] == PLT_RUN_LEFT);
+#if SCM_V0065_PLT_RUN_FIX
+          encodeRun(uiRun, pSPoint[uiTraIdx], siCurLevel, uiTotal - uiNumIndices - uiIdx - 1 - lastRunType);
+#else
           encodeRun(uiRun, pSPoint[uiTraIdx], siCurLevel, uiTotal - uiNumIndices - uiIdx - 1);
+#endif
         }
       }
 
