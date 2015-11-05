@@ -952,6 +952,9 @@ Void TDecSbac::parsePLTModeSyntax(TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDe
           else
           {
             xReadEpExGolomb( uiSymbol, 3 RExt__DECODER_DEBUG_BIT_STATISTICS_PASS_OPT_ARG( STATS__CABAC_DICTIONARY_BITS ) );
+#if SCM_V0041_RESTRICT_ESCAPE_RANGE
+            assert( uiSymbol < ( 1 << ( pcCU->getSlice()->getSPS()->getBitDepth( comp > 0 ? CHANNEL_TYPE_CHROMA : CHANNEL_TYPE_LUMA ) + 1 ) ) );
+#endif
           }
           pPixelValue[comp][uiTraIdx] = uiSymbol;
         }
@@ -969,6 +972,9 @@ Void TDecSbac::parsePLTModeSyntax(TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDe
             else
             {
               xReadEpExGolomb( uiSymbol, 3 RExt__DECODER_DEBUG_BIT_STATISTICS_PASS_OPT_ARG( STATS__CABAC_DICTIONARY_BITS ) );
+#if SCM_V0041_RESTRICT_ESCAPE_RANGE
+              assert( uiSymbol < ( 1 << ( pcCU->getSlice()->getSPS()->getBitDepth( comp > 0 ? CHANNEL_TYPE_CHROMA : CHANNEL_TYPE_LUMA ) + 1 ) ) );
+#endif
             }
             pPixelValue[comp][uiTraIdxC] = uiSymbol;
           }
