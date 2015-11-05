@@ -2708,6 +2708,21 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, TComM
         pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
       }
     }
+#if SCM_V0049_ROUND_IBC_MERGE_MV
+    else
+    {
+      for ( Int i = iCount<<1; i < (iCount<<1) + 1 + getSlice()->isInterB() ? 1 : 0; i++ )
+      {
+        Int iCurrRefIdx = pcMvFieldNeighbours[i].getRefIdx();
+        if(iCurrRefIdx >= 0)
+        {
+          if(getSlice()->getRefPic(RefPicList(i&0x1),iCurrRefIdx)->getPOC() == getSlice()->getPOC())
+            pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
+        }
+      }
+    }
+#endif 
+
     if ( mrgCandIdx == iCount )
     {
       return;
@@ -2747,6 +2762,20 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, TComM
         pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
       }
     }
+#if SCM_V0049_ROUND_IBC_MERGE_MV
+    else
+    {
+      for ( Int i = iCount<<1; i < (iCount<<1) + 1 + getSlice()->isInterB() ? 1 : 0; i++ )
+      {
+        Int iCurrRefIdx = pcMvFieldNeighbours[i].getRefIdx();
+        if(iCurrRefIdx >= 0)
+        {
+          if(getSlice()->getRefPic(RefPicList(i&0x1),iCurrRefIdx)->getPOC() == getSlice()->getPOC())
+            pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
+        }
+      }
+    }
+#endif 
     if ( mrgCandIdx == iCount )
     {
       return;
@@ -2786,6 +2815,21 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, TComM
         pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
       }
     }
+#if SCM_V0049_ROUND_IBC_MERGE_MV
+    else
+    {
+      for ( Int i = iCount<<1; i < (iCount<<1) + 1 + getSlice()->isInterB() ? 1 : 0; i++ )
+      {
+        Int iCurrRefIdx = pcMvFieldNeighbours[i].getRefIdx();
+        if(iCurrRefIdx >= 0)
+        {
+          if(getSlice()->getRefPic(RefPicList(i&0x1),iCurrRefIdx)->getPOC() == getSlice()->getPOC())
+            pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
+        }
+      }
+    }
+#endif 
+
     if ( mrgCandIdx == iCount )
     {
       return;
@@ -2824,6 +2868,20 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, TComM
         pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
       }
     }
+#if SCM_V0049_ROUND_IBC_MERGE_MV
+    else
+    {
+      for ( Int i = iCount<<1; i < (iCount<<1) + 1 + getSlice()->isInterB() ? 1 : 0; i++ )
+      {
+        Int iCurrRefIdx = pcMvFieldNeighbours[i].getRefIdx();
+        if(iCurrRefIdx >= 0)
+        {
+          if(getSlice()->getRefPic(RefPicList(i&0x1),iCurrRefIdx)->getPOC() == getSlice()->getPOC())
+            pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
+        }
+      }
+    }
+#endif 
     if ( mrgCandIdx == iCount )
     {
       return;
@@ -2865,6 +2923,20 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, TComM
           pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
         }
       }
+#if SCM_V0049_ROUND_IBC_MERGE_MV
+    else
+    {
+      for ( Int i = iCount<<1; i < (iCount<<1) + 1 + getSlice()->isInterB() ? 1 : 0; i++ )
+      {
+        Int iCurrRefIdx = pcMvFieldNeighbours[i].getRefIdx();
+        if(iCurrRefIdx >= 0)
+        {
+          if(getSlice()->getRefPic(RefPicList(i&0x1),iCurrRefIdx)->getPOC() == getSlice()->getPOC())
+            pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
+        }
+      }
+    }
+#endif 
       if ( mrgCandIdx == iCount )
       {
         return;
@@ -2960,6 +3032,21 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, TComM
           pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
         }
       }
+#if SCM_V0049_ROUND_IBC_MERGE_MV
+    else
+    {
+      for ( Int i = iCount<<1; i < (iCount<<1) + 1 + getSlice()->isInterB() ? 1 : 0; i++ )
+      {
+        Int iCurrRefIdx = pcMvFieldNeighbours[i].getRefIdx();
+        if(iCurrRefIdx >= 0)
+        {
+          if(getSlice()->getRefPic(RefPicList(i&0x1),iCurrRefIdx)->getPOC() == getSlice()->getPOC())
+            pcMvFieldNeighbours[i].setMvField( (pcMvFieldNeighbours[i].getMv()>>2)<<2, pcMvFieldNeighbours[i].getRefIdx() );
+        }
+      }
+    }
+#endif 
+
       if ( mrgCandIdx == iCount )
       {
         return;
