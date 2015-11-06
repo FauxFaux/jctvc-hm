@@ -189,7 +189,11 @@ public:
   Bool  calAboveRun(TComDataCU* pcCU, Pel* pValue, UChar * pSPoint, UInt uiWidth, UInt uiStartPos, UInt uiTotal, UInt &uiRun, UChar* pEscapeFlag);
   Void  calcPixelPred(TComDataCU* pcCU, Pel* pOrg [3], Pel *pPalette[3], Pel* pValue, Pel*paPixelValue[3], Pel*paRecoValue[3],
                       UInt uiWidth, UInt uiHeight,  UInt uiStrideOrg, UInt uiStartPos );
+# if SCM_V0034_PLT_ENCODER_OPT420
+  Double calcPixelPredRD(TComDataCU* pcCU, Pel pOrg[3], TComRdCost *pcCost, UInt *error, Bool discardChroma = false);
+# else
   Double calcPixelPredRD(TComDataCU* pcCU, Pel pOrg[3], TComRdCost *pcCost, UInt *error);
+# endif
   UInt getTruncBinBits(UInt uiSymbol, UInt uiMaxSymbol);
   UInt getEpExGolombNumBins(UInt uiSymbol, UInt uiCount);
   Void  preCalcPLTIndex(TComDataCU* pcCU, Pel *Palette[3], Pel* pSrc[3], UInt uiWidth, UInt uiHeight, UInt uiPLTSize);

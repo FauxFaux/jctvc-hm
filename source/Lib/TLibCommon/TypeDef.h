@@ -186,6 +186,7 @@
 #define SCM_V0043_RESTRICT_MAX_PALETTE_PRED_SIZE         1 ///< JCTVC-V0043: restriction for maximum palette predictor size
 #define SCM_V0065_PLT_RUN_FIX                            1 ///< JCTVC-V0065: modified formula for computing PaletteMaxRun including consideration of copy_above_indices_for_final_run_flag
 #define SCM_V0049_ROUND_IBC_MERGE_MV                     1 ///< JCTVC-V0049: Round merge MVs when ref picture is curr pic
+#define SCM_V0034_PLT_ENCODER_OPT420                     1 ///< JCTVC-V0034: take into account whether pixel's chroma matters
 
 //------------------------------------------------
 // Derived macros
@@ -196,6 +197,8 @@
 #define SCM_S0067_MAX_CAND_SIZE                          32 ///< 32 or 64, 16 by default
 #define SCM_T0227_INTER_SEARCH_YUV                        1 ///< use 3 components for Inter in mixed CU decision(Intra BC and inter CU)
 #define SCM_T0048_PLT_PRED_IN_PPS_REFRESH                16 ///< Periodicity of the palette refresh
+#define SCM_V0034_PLT_CHROMA_SHIFT_ADJ                    5 ///< Chroma error weight as a right shift
+#define SCM_V0034_PLT_CHROMA_SETTINGS     (1<<SCM_V0034_PLT_CHROMA_SHIFT_ADJ) // Weight for non-discarded pixels
 
 
 //------------------------------------------------
