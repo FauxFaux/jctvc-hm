@@ -1160,6 +1160,9 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
         }
         m_pcEntropyCoder->encodeSkipFlag( pcCU, 0, true );
         m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
+#if SCM_S0043_PLT_DELTA_QP_FIX          
+        m_pcEntropyCoder->encodePLTModeInfo( pcCU, 0, true );
+#endif 
       }
       else // encodePredMode has already done it
       {
@@ -12305,11 +12308,18 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt& ruiBits )
 
     m_pcEntropyCoder->encodeSkipFlag ( pcCU, 0, true );
     m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
+#if SCM_S0043_PLT_DELTA_QP_FIX     
+    Bool codeDeltaQp = false;
+    Bool codeChromaQpAdj = false;
+    m_pcEntropyCoder->encodePLTModeInfo( pcCU, 0, true, &codeDeltaQp, &codeChromaQpAdj );    
+#endif 
     m_pcEntropyCoder->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
     m_pcEntropyCoder->encodePredInfo( pcCU, 0 );
 
+#if !SCM_S0043_PLT_DELTA_QP_FIX
     Bool codeDeltaQp = false;
     Bool codeChromaQpAdj = false;
+#endif 
     m_pcEntropyCoder->encodeCoeff   ( pcCU, 0, pcCU->getDepth(0), codeDeltaQp, codeChromaQpAdj );
 
     ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();
