@@ -1461,10 +1461,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     }
 
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-        if (pcSlice->getPPS()->getPpsScreenExtension().getUseIntraBlockCopy()) {
-            pcSlice->setCurPicLongTerm( pcPic );
-            pcPic->setIsLongTerm( true );
-        }
+    if (pcSlice->getPPS()->getPpsScreenExtension().getUseIntraBlockCopy())
+    {
+      pcSlice->setCurPicLongTerm( pcPic );
+      pcPic->setIsLongTerm( true );
+    }
 #endif
     //  Set reference list
     pcSlice->setRefPicList ( rcListPic );

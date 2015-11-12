@@ -892,23 +892,77 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
               READ_FLAG( uiCode, "palette_mode_enabled_flag" );               screenExtension.setUsePLTMode( uiCode != 0 );
 
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-                            UInt MaxDPBSize = 0;
-                            if (!screenExtension.getUseIntraBlockCopy()) {
-                                MaxDPBSize = 6;
-                            } 
-                            else {
-                                MaxDPBSize = 7;
-                            }
-                            
-                            for(UInt ij=0; ij <= pcSPS->getMaxTLayers()-1; ij++)
-                            {
-                                if (pcSPS->getMaxDecPicBuffering(ij) > MaxDPBSize)
-                                {
-                                    std::cerr <<"Bitstream compliance Error m_uiMaxDecPicBuffering[" << ij << "]" << pcSPS->getMaxDecPicBuffering(ij) << "shall not be bigger than MaxDPBSize -1 and smaller than 0" << std::endl;
-                                    assert(false);
-                                    exit(1);
-                                }
-                            }
+              UInt MaxDPBSize = 0;
+              if (!screenExtension.getUseIntraBlockCopy())
+              {
+                MaxDPBSize = 6;
+              }
+              else
+              {
+                MaxDPBSize = 7;
+              }
+
+              UInt uiPicSizeInSamplesY = pcSPS->getPicWidthInLumaSamples()*pcSPS->getPicHeightInLumaSamples(); 
+              UInt uiMaxLumaPs = 36864;
+              Level::Name lLevel = pcSPS->getPTL()->getGeneralPTL()->getLevelIdc();
+              UInt uiMaxDPBSize = MaxDPBSize; // from Annex A
+              switch (lLevel)
+              {
+                case Level::LEVEL1:
+                  uiMaxLumaPs = 36864;             break;
+                case Level::LEVEL2:
+                  uiMaxLumaPs = 122880;            break;
+                case Level::LEVEL2_1:
+                  uiMaxLumaPs = 245760;            break;
+                case Level::LEVEL3:
+                  uiMaxLumaPs = 552960;            break;
+                case Level::LEVEL3_1:
+                  uiMaxLumaPs = 983040;            break;
+                case Level::LEVEL4:
+                  uiMaxLumaPs = 2228224;           break;
+                case Level::LEVEL4_1:
+                  uiMaxLumaPs = 2228224;           break;
+                case Level::LEVEL5:
+                  uiMaxLumaPs = 8912896;           break;
+                case Level::LEVEL5_1:
+                  uiMaxLumaPs = 8912896;           break;
+                case Level::LEVEL5_2:
+                  uiMaxLumaPs = 8912896;           break;
+                case Level::LEVEL6:
+                  uiMaxLumaPs = 35651584;          break;
+                case Level::LEVEL6_1:
+                  uiMaxLumaPs = 35651584;          break;
+                case Level::LEVEL6_2:
+                  uiMaxLumaPs = 35651584;          break;
+                default:
+                  uiMaxLumaPs = 35651584;          break;
+              }
+              if ( uiPicSizeInSamplesY <= (uiMaxLumaPs >> 2) )
+              {
+                uiMaxDPBSize = (4 * MaxDPBSize < 16) ? 4 * MaxDPBSize : 16; // from Annex A
+              }
+              else if ( uiPicSizeInSamplesY <= (uiMaxLumaPs >> 1) )
+              {
+                uiMaxDPBSize = (2 * MaxDPBSize < 16) ? 2 * MaxDPBSize : 16;
+              }
+              else if ( uiPicSizeInSamplesY <= ((3 * uiMaxLumaPs) >> 2) )
+              {
+                uiMaxDPBSize = ((4 * MaxDPBSize) / 3 < 16) ? (4 * MaxDPBSize) / 3 : 16;
+              }
+              else
+              {
+                uiMaxDPBSize = MaxDPBSize;
+              }
+
+              for(UInt ij=0; ij <= pcSPS->getMaxTLayers()-1; ij++)
+              {
+                if (pcSPS->getMaxDecPicBuffering(ij) > uiMaxDPBSize)
+                {
+                  std::cerr <<"Bitstream compliance Error m_uiMaxDecPicBuffering[" << ij << "]" << pcSPS->getMaxDecPicBuffering(ij) << "shall not be bigger than MaxDPBSize -1 and smaller than 0" << std::endl;
+                  assert(false);
+                  exit(1);
+                }
+              }
 #endif
 
               if ( screenExtension.getUsePLTMode() )//decode only when palette mode is enabled

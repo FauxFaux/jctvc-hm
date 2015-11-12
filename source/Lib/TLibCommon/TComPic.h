@@ -84,8 +84,8 @@ private:
 
   TComHash              m_hashMap;
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-  Bool                                    m_bCurPic;
-    Bool                                    m_bInDPB;
+  Bool                  m_bCurPic;
+  Bool                  m_bInDPB;
 #endif
 
 public:
@@ -93,8 +93,7 @@ public:
   virtual ~TComPic();
 
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-    Void                    copyPicInfo(const TComPic& sComPic);
-    Void                    swapPicYuvPointer(TComPic* sPic);
+  Void          copyPicInfo(const TComPic& sComPic);
 #endif
 
   Void          create( const TComSPS &sps, const TComPPS &pps,
@@ -178,10 +177,10 @@ public:
   const TComHash* getHashMap() const { return &m_hashMap; }
 
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-  Bool                    getCurrentPicFlag()                    { return m_bCurPic; } 
-  Void                    setCurrentPicFlag(Bool b)        { m_bCurPic = b; }
-    Bool                    getCurrPicInDPBFlag()                    { return m_bInDPB; } 
-  Void                    setCurrPicInDPBFlag(Bool b)        { m_bInDPB = b; }
+  Bool          getCurrentPicFlag()         { return m_bCurPic; }
+  Void          setCurrentPicFlag(Bool b)   { m_bCurPic = b; }
+  Bool          getCurrPicInDPBFlag()       { return m_bInDPB; }
+  Void          setCurrPicInDPBFlag(Bool b) { m_bInDPB = b; }
 #endif
 
 

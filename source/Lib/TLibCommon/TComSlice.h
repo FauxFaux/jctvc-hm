@@ -1464,8 +1464,8 @@ private:
   SliceType                  m_encCABACTableIdx;           // Used to transmit table selection across slices.
 
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-  TComPic*                                     m_pcCurPicLongTerm;
-  Bool                                             m_pcTwoVersionsOfCurrDecPicFlag; 
+  TComPic*                   m_pcCurPicLongTerm;
+  Bool                       m_pcTwoVersionsOfCurrDecPicFlag;
 #endif
 
 public:
@@ -1699,10 +1699,10 @@ public:
   Bool                        isOnlyCurrentPictureAsReference();
 
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-  TComPic*                    getCurPicLongTerm()                                    { return m_pcCurPicLongTerm;                                                                         }
-  Void                        setCurPicLongTerm( TComPic* p )                        { m_pcCurPicLongTerm = p;                                                                           }
-    Bool                                                getTwoVersionsOfCurrDecPicFlag()                                             { return m_pcTwoVersionsOfCurrDecPicFlag;                                             }
-    Void                                                setTwoVersionsOfCurrDecPicFlag(Bool b)                                 { m_pcTwoVersionsOfCurrDecPicFlag = b;                                                     }
+  TComPic*                    getCurPicLongTerm()                                    { return m_pcCurPicLongTerm;                                    }
+  Void                        setCurPicLongTerm( TComPic* p )                        { m_pcCurPicLongTerm = p;                                       }
+  Bool                        getTwoVersionsOfCurrDecPicFlag()                       { return m_pcTwoVersionsOfCurrDecPicFlag;                       }
+  Void                        setTwoVersionsOfCurrDecPicFlag(Bool b)                 { m_pcTwoVersionsOfCurrDecPicFlag = b;                          }
 #endif
 
 protected:

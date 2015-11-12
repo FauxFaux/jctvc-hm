@@ -75,12 +75,11 @@ TComPicYuv::~TComPicYuv()
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
 TComPicYuv& TComPicYuv::operator= (const TComPicYuv& sComPicYuv)
 {
-
-  m_iPicWidth = sComPicYuv.m_iPicWidth;
-  m_iPicHeight = sComPicYuv.m_iPicHeight;
+  m_picWidth = sComPicYuv.m_picWidth;
+  m_picHeight = sComPicYuv.m_picHeight;
   m_chromaFormatIDC = sComPicYuv.m_chromaFormatIDC;
-  m_iMarginX = sComPicYuv.m_iMarginX;
-  m_iMarginY = sComPicYuv.m_iMarginY;
+  m_marginX = sComPicYuv.m_marginX;
+  m_marginY = sComPicYuv.m_marginY;
   m_bIsBorderExtended = sComPicYuv.m_bIsBorderExtended;
 
   sComPicYuv.copyToPic(this);

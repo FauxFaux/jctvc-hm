@@ -225,23 +225,19 @@ Void TAppDecTop::decode()
       }
 
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-            if (bNewPicture) 
-            {
-                if (m_cTDecTop.getTwoVersionsOfCurrDecPicFlag())
-                {
-                    // remove current picture before ILF
-#if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-                    m_cTDecTop.remCurPicBefILFFromDPBDecDPBFullnessByOne(pcListPic);
-#else
-                    m_cTDecTop.xRemCurPicBefILFFromDPBDecDPBFullnessByOne(pcListPic);
-#endif
-                    m_cTDecTop.updateCurrentPictureFlag(pcListPic);
-                } 
-                else if (m_cTDecTop.isCurrPicAsRef())
-                {
-                    m_cTDecTop.markCurrentPictureAfterILFforShortTermRef(pcListPic);
-                }
-            }
+      if ( bNewPicture )
+      {
+        if ( m_cTDecTop.getTwoVersionsOfCurrDecPicFlag() )
+        {
+          // remove current picture before ILF
+          m_cTDecTop.remCurPicBefILFFromDPBDecDPBFullnessByOne( pcListPic );
+          m_cTDecTop.updateCurrentPictureFlag( pcListPic );
+        }
+        else if ( m_cTDecTop.isCurrPicAsRef() )
+        {
+          m_cTDecTop.markCurrentPictureAfterILFforShortTermRef( pcListPic );
+        }
+      }
 #endif
 
       // write reconstruction to file

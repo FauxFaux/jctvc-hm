@@ -110,7 +110,7 @@ TComSlice::TComSlice()
 , m_pcLastEncPic                  ( NULL )
 , m_encCABACTableIdx              (I_SLICE)
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-, m_pcCurPicLongTerm                            ( NULL )
+, m_pcCurPicLongTerm              ( NULL )
 , m_pcTwoVersionsOfCurrDecPicFlag ( false )
 #endif
 {
@@ -487,7 +487,7 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic, Bool checkNumPocTo
   if ( getPPS()->getPpsScreenExtension().getUseIntraBlockCopy() )
   {
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-      rpsCurrList0[cIdx++] = getCurPicLongTerm();
+    rpsCurrList0[cIdx++] = getCurPicLongTerm();
 #else
     rpsCurrList0[cIdx++] = getPic();
     getPic()->setIsLongTerm( true );
@@ -513,8 +513,8 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic, Bool checkNumPocTo
     if ( getPPS()->getPpsScreenExtension().getUseIntraBlockCopy() )
     {
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-            rpsCurrList1[cIdx++] = getCurPicLongTerm();
-#else 
+      rpsCurrList1[cIdx++] = getCurPicLongTerm();
+#else
       rpsCurrList1[cIdx++] = getPic();
       getPic()->setIsLongTerm( true );
 #endif
@@ -534,14 +534,14 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic, Bool checkNumPocTo
 
   if( getPPS()->getPpsScreenExtension().getUseIntraBlockCopy() &&
       !m_RefPicListModification.getRefPicListModificationFlagL0() && numPicTotalCurr > m_aiNumRefIdx[REF_PIC_LIST_0] )
-   {
+  {
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-         m_apcRefPicList[REF_PIC_LIST_0][m_aiNumRefIdx[REF_PIC_LIST_0] - 1] = getCurPicLongTerm(); 
+     m_apcRefPicList[REF_PIC_LIST_0][m_aiNumRefIdx[REF_PIC_LIST_0] - 1] = getCurPicLongTerm();
 #else
      m_apcRefPicList[REF_PIC_LIST_0][m_aiNumRefIdx[REF_PIC_LIST_0] - 1] = getPic(); 
 #endif
      m_bIsUsedAsLongTerm[REF_PIC_LIST_0][m_aiNumRefIdx[REF_PIC_LIST_0] - 1] = true;
-   }
+  }
 
   if ( m_eSliceType != B_SLICE )
   {

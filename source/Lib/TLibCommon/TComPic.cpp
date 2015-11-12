@@ -56,8 +56,8 @@ TComPic::TComPic()
 , m_uiCurrSliceIdx                        (0)
 , m_bCheckLTMSB                           (false)
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-, m_bCurPic                                                                (false)
-, m_bInDPB                                                                (false)
+, m_bCurPic                               (false)
+, m_bInDPB                                (false)
 #endif
 
 {
@@ -73,13 +73,13 @@ TComPic::~TComPic()
 }
 
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-Void TComPic::copyPicInfo(const TComPic& sComPic)
+Void TComPic::copyPicInfo( const TComPic& sComPic )
 {
-    UInt i = 0;
+  UInt i = 0;
 
   m_uiTLayer = sComPic.m_uiTLayer;
 
-    m_bNeededForOutput = sComPic.m_bNeededForOutput;
+  m_bNeededForOutput = sComPic.m_bNeededForOutput;
   m_bReconstructed = sComPic.m_bReconstructed;
 
   m_uiCurrSliceIdx = sComPic.m_uiCurrSliceIdx;
@@ -88,36 +88,13 @@ Void TComPic::copyPicInfo(const TComPic& sComPic)
   m_isTop = sComPic.m_isTop;
   m_isField = sComPic.m_isField;
 
-
-    for (i = 0; i < NUM_PIC_YUV; i++) {
-      if(sComPic.m_apcPicYuv[i] != NULL)
-        *m_apcPicYuv[i] = *(sComPic.m_apcPicYuv[i]);
+  for ( i = 0; i < NUM_PIC_YUV; i++ )
+  {
+    if ( sComPic.m_apcPicYuv[i] != NULL )
+    {
+      *m_apcPicYuv[i] = *(sComPic.m_apcPicYuv[i]);
+    }
   }
-}
-#endif
-
-#if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
-Void TComPic::swapPicYuvPointer(TComPic* sPic)
-{
-        Pel* bufTemp = NULL;
-        for (UInt i = 0; i < NUM_PIC_YUV; i++) 
-        {
-            for(Int chan=0; chan<getNumberValidComponents(); chan++)
-            {
-
-                const ComponentID ch=ComponentID(chan);
-
-                if(m_apcPicYuv[i] != NULL && sPic->m_apcPicYuv[i] != NULL) 
-                {
-                    Pel* bufA = sPic->m_apcPicYuv[i]->getBuf(ch);
-                    Pel* bufB = m_apcPicYuv[i]->getBuf(ch);
-                    bufTemp = sPic->m_apcPicYuv[i]->getBuf(ch);    
-                    
-                    bufA = m_apcPicYuv[i]->getBuf(ch);
-                    bufB = bufTemp;
-                }
-            }
-        }
 }
 #endif
 
