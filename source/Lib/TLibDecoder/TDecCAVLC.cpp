@@ -1180,12 +1180,22 @@ Void TDecCavlc::parseSliceHeader (TComSlice* pcSlice, ParameterSetManager *param
 
   if(!pcSlice->getDependentSliceSegmentFlag())
   {
+#if SCM_V0057_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
+    Bool bTwoVersionsOfCurrDecPicFlag = ( pps->getPpsScreenExtension().getUseIntraBlockCopy() 
+      &&(sps->getUseSAO() || !pps->getPicDisableDeblockingFilterFlag() || pps->getDeblockingFilterOverrideEnabledFlag())
+      );
+#endif
     for (Int i = 0; i < pps->getNumExtraSliceHeaderBits(); i++)
     {
       READ_FLAG(uiCode, "slice_reserved_flag[]"); // ignored
     }
 
     READ_UVLC (    uiCode, "slice_type" );            pcSlice->setSliceType((SliceType)uiCode);
+#if SCM_V0057_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
+    if (sps->getMaxDecPicBuffering(pcSlice->getTLayer()) == 1 && bTwoVersionsOfCurrDecPicFlag)
+      assert((SliceType)uiCode == I_SLICE);
+#endif
+
     if( pps->getOutputFlagPresentFlag() )
     {
       READ_FLAG( uiCode, "pic_output_flag" );    pcSlice->setPicOutputFlag( uiCode ? true : false );
@@ -1227,6 +1237,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice* pcSlice, ParameterSetManager *param
       {
         iPOCmsb = iPrevPOCmsb;
       }
+#if SCM_V0057_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
+      TComReferencePictureSet* rps1 = pcSlice->getLocalRPS();
+      (*rps1)=TComReferencePictureSet();
+      assert(rps1->getNumberOfPictures() + bTwoVersionsOfCurrDecPicFlag <= sps->getMaxDecPicBuffering(sps->getMaxTLayers()-1)-1);
+#endif
+
       if ( pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_W_LP
         || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_W_RADL
         || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA_N_LP )

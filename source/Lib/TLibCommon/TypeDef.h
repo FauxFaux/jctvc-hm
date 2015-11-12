@@ -187,6 +187,7 @@
 #define SCM_V0065_PLT_RUN_FIX                            1 ///< JCTVC-V0065: modified formula for computing PaletteMaxRun including consideration of copy_above_indices_for_final_run_flag
 #define SCM_V0049_ROUND_IBC_MERGE_MV                     1 ///< JCTVC-V0049: Round merge MVs when ref picture is curr pic
 #define SCM_V0034_PLT_ENCODER_OPT420                     1 ///< JCTVC-V0034: take into account whether pixel's chroma matters
+#define SCM_V0057_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC     1 ///< JCTVC-V0057: DPB considerations when current picture is a reference picture
 
 //------------------------------------------------
 // Derived macros
