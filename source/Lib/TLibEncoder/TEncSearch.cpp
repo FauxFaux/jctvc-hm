@@ -2997,19 +2997,16 @@ TEncSearch::xRecurIntraCodingQTCSC( TComYuv* pcOrgYuv, TComYuv* pcPredYuv, TComY
   Bool                bCheckSplit           = ( bTestMaxTUSize && bCheckFull )? false: ( uiLog2TrSize  >  pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) );
   const Bool          extendedPrecision     = rTu.getCU()->getSlice()->getSPS()->getSpsRangeExtension().getExtendedPrecisionProcessingFlag();
 
-#if SCM_U0095_FAST_INTRA_ACT
   UInt uiDepth = pcCU->getDepth(uiAbsPartIdx);
-#endif
+
   if(m_pcEncCfg->getTransquantBypassInferTUSplit() && pcCU->isLosslessCoded(uiAbsPartIdx) && bCheckFull)
   {
     bCheckSplit = false;
   }
-#if SCM_U0095_FAST_INTRA_ACT
   else if ( m_pcEncCfg->getNoTUSplitIntraACTEnabled() && uiDepth <= 1 && bCheckFull )
   {
     bCheckSplit = false;
   }
-#endif
 
   assert( bCheckFull || bCheckSplit );
   assert( chFmt == CHROMA_444);
@@ -4167,11 +4164,7 @@ TEncSearch::estIntraPredQTCT( TComDataCU*    pcCU,
       }
     }
 
-#if SCM_U0095_FAST_INTRA_ACT
     if ((!m_pcEncCfg->getTransquantBypassInferTUSplit() || !pcCU->isLosslessCoded(0)) && (uiLog2TrSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiPartOffset)) && ((!m_pcEncCfg->getNoTUSplitIntraACTEnabled()) || (m_pcEncCfg->getNoTUSplitIntraACTEnabled() && uiDepth > 1)))
-#else
-    if((!m_pcEncCfg->getTransquantBypassInferTUSplit() || !pcCU->isLosslessCoded(0)) && (uiLog2TrSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiPartOffset)) )
-#endif
     {
       Distortion uiPUDistY = 0;
       Distortion uiPUDistC = 0;
