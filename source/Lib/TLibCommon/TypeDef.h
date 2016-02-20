@@ -175,7 +175,6 @@
 // Processing controls
 //------------------------------------------------
 
-#define SCM_S0043_PLT_DELTA_QP                           1 ///< JCTVC-S0043: delta qp signalling for palette mode
 #define SCM_U0095_FAST_INTRA_ACT                         1 ///< JCTVC-U0095: fast intra ACT search
 #define SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC     0 ///< JCTVC-U0181: storage of both versions of the current decoded picture into the DPB, treating pictures with in-loop filtering on/off differently, and increase the value of maxDpbPicBuf equal to 7 for profiles supporting IBC
 #define SCM_V0066_CIP_IBC_UNI                            1 ///< JCTVC-V0066: Remove special treatments of IBC as different from inter in the case of CIP. 
@@ -201,9 +200,6 @@
 #define SCM_V0034_PLT_CHROMA_SHIFT_ADJ                    5 ///< Chroma error weight as a right shift
 #define SCM_V0034_PLT_CHROMA_SETTINGS     (1<<SCM_V0034_PLT_CHROMA_SHIFT_ADJ) // Weight for non-discarded pixels
 
-#if SCM_S0043_PLT_DELTA_QP
-#define SCM_S0043_PLT_DELTA_QP_FIX                        1
-#endif 
 
 //------------------------------------------------
 // Backwards-compatibility

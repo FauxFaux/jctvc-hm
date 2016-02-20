@@ -306,20 +306,14 @@ Void TDecCu::xDecodeCU( TComDataCU*const pcCU, const UInt uiAbsPartIdx, const UI
 
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
 
-#if SCM_S0043_PLT_DELTA_QP
   Bool bCodeDQP = getdQPFlag();
   Bool isChromaQpAdjCoded = getIsChromaQpAdjCoded();
 
   m_pcEntropyDecoder->decodePLTModeInfo( pcCU, uiAbsPartIdx, uiDepth, bCodeDQP, isChromaQpAdjCoded );
-#endif
 
   if (pcCU->getPLTModeFlag(uiAbsPartIdx) )
   {
-#if SCM_S0043_PLT_DELTA_QP
     setIsChromaQpAdjCoded( isChromaQpAdjCoded );
-#else
-    Bool bCodeDQP = getdQPFlag();
-#endif
     setdQPFlag(bCodeDQP);
     xFinishDecodeCU( pcCU, uiAbsPartIdx, uiDepth, isLastCtuOfSliceSegment );
     return;
@@ -342,10 +336,6 @@ Void TDecCu::xDecodeCU( TComDataCU*const pcCU, const UInt uiAbsPartIdx, const UI
   m_pcEntropyDecoder->decodePredInfo( pcCU, uiAbsPartIdx, uiDepth, m_ppcCU[uiDepth]);
 
   // Coefficient decoding
-#if !SCM_S0043_PLT_DELTA_QP
-  Bool bCodeDQP = getdQPFlag();
-  Bool isChromaQpAdjCoded = getIsChromaQpAdjCoded();
-#endif
   m_pcEntropyDecoder->decodeCoeff( pcCU, uiAbsPartIdx, uiDepth, bCodeDQP, isChromaQpAdjCoded );
   setIsChromaQpAdjCoded( isChromaQpAdjCoded );
   setdQPFlag( bCodeDQP );

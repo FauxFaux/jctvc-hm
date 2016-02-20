@@ -142,11 +142,7 @@ protected:
 public:
   Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codePLTModeFlag        ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#if SCM_S0043_PLT_DELTA_QP
   Void codePLTModeSyntax      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNumComp, Bool* bCodeDQP, Bool* codeChromaQpAdjFlag );
-#else
-  Void codePLTModeSyntax      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNumComp);
-#endif
   Void encodeSPointRD(UInt uiIdx, UInt uiWidth, UChar *pSPoint, UInt mode, UInt *uiRefScanOrder);
   Void saveRestorePltCtx(UInt saveState);
 

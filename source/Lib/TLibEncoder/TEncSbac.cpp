@@ -573,11 +573,7 @@ Void TEncSbac::codePLTModeFlag(TComDataCU *pcCU, UInt uiAbsPartIdx)
   m_pcBinIf->encodeBin(uiSymbol, m_PLTModeFlagSCModel.get(0, 0, 0));
 }
 
-#if SCM_S0043_PLT_DELTA_QP
 Void TEncSbac::codePLTModeSyntax( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNumComp, Bool* bCodeDQP, Bool* codeChromaQpAdj )
-#else
-Void TEncSbac::codePLTModeSyntax(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNumComp)
-#endif
 {
   UInt uiIdx, uiDictMaxSize, uiDictIdxBits;
   UInt uiSampleBits[3];
@@ -713,7 +709,6 @@ Void TEncSbac::codePLTModeSyntax(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNum
     assert(!pcCU->getPLTScanRotationModeFlag(uiAbsPartIdx));
   }
 
-#if SCM_S0043_PLT_DELTA_QP
   if( uiSignalEscape )
   {
     if( pcCU->getSlice()->getPPS()->getUseDQP() && bCodeDQP && *bCodeDQP )
@@ -728,7 +723,6 @@ Void TEncSbac::codePLTModeSyntax(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNum
       *codeChromaQpAdj = false;
     }
   }
-#endif
 
   uiIdx = 0;
   while ( uiIdx < uiTotal )
