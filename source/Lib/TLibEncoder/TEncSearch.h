@@ -365,13 +365,6 @@ public:
                                   TComMv&       rcMvSrchRngLT,
                                   TComMv&       rcMvSrchRngRB );
 
-#if !SCM_V0066_CIP_IBC_UNI
-  Bool xCIPIBCSearchPruning(    TComDataCU*   pcCU,
-                                Int           refPixlX,
-                                Int           refPixlY,
-                                Int           roiWidth,
-                                Int           roiHeight);
-#endif
 
   Bool isValidIntraBCSearchArea(  TComDataCU*   pcCU,
                                   Int           predX,
@@ -415,13 +408,7 @@ public:
       UInt startCtu = pcSym->getCtuTsToRsAddrMap( pcCU->getSlice()->getSliceSegmentCurStartCtuTsAddr() );
       if (refCtu < startCtu) return false;
     }
-
-#if SCM_V0066_CIP_IBC_UNI
     return true;
-#else
-    return (!pcCU->getSlice()->getPPS()->getConstrainedIntraPred()) ||
-            xCIPIBCSearchPruning(pcCU, cuPelX + predX, cuPelY + predY, roiWidth, roiHeight);
-#endif
   }
 
   Void xIntraBCSearchMVCandUpdate(Distortion uiSad, Int x, Int y, Distortion* uiSadBestCand, TComMv* cMVCand);

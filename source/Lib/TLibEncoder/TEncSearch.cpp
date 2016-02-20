@@ -6897,18 +6897,7 @@ Bool TEncSearch::isBlockVectorValid( Int xPos, Int yPos, Int width, Int height, 
     }
     else
     {
-#if SCM_V0066_CIP_IBC_UNI
       return true;
-#else
-      if(!pcCU->getSlice()->getPPS()->getConstrainedIntraPred() || xCIPIBCSearchPruning(pcCU, xPos + xBv, yPos + yBv, width, height))
-      {
-        return true;
-      }
-      else
-      {
-        return false;
-      }
-#endif
     }
   }
 
@@ -6920,18 +6909,7 @@ Bool TEncSearch::isBlockVectorValid( Int xPos, Int yPos, Int width, Int height, 
   // in the same CTU line
   if ( refRightX>>ctuSizeLog2 < xPos>>ctuSizeLog2 )
   {
-#if SCM_V0066_CIP_IBC_UNI
     return true;
-#else
-    if(!pcCU->getSlice()->getPPS()->getConstrainedIntraPred() || xCIPIBCSearchPruning(pcCU, xPos + xBv, yPos + yBv, width, height))
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-#endif
   }
   if ( refRightX>>ctuSizeLog2 > xPos>>ctuSizeLog2 )
   {
@@ -6948,19 +6926,7 @@ Bool TEncSearch::isBlockVectorValid( Int xPos, Int yPos, Int width, Int height, 
   {
     return false;
   }
-
-#if SCM_V0066_CIP_IBC_UNI
   return true;
-#else
-  if(!pcCU->getSlice()->getPPS()->getConstrainedIntraPred() || xCIPIBCSearchPruning(pcCU, xPos + xBv, yPos + yBv, width, height))
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-#endif
 }
 
 // based on predInterSearch()
@@ -8259,61 +8225,6 @@ Void TEncSearch::xSetIntraSearchRange ( TComDataCU* pcCU, TComMv& cMvPred, UInt 
   pcCU->clipMv        ( rcMvSrchRngLT );
   pcCU->clipMv        ( rcMvSrchRngRB );
 }
-
-#if !SCM_V0066_CIP_IBC_UNI
-Bool TEncSearch::xCIPIBCSearchPruning( TComDataCU* pcCU, Int refPixlX, Int refPixlY, Int roiWidth, Int roiHeight )
-{
-  const Int iMaxCuWidth   = pcCU->getSlice()->getSPS()->getMaxCUWidth();
-  const Int iMaxCuHeight  = pcCU->getSlice()->getSPS()->getMaxCUHeight();
-
-  UInt partNumX = roiWidth/pcCU->getPic()->getMinCUWidth() + (((refPixlX%pcCU->getPic()->getMinCUWidth()) == 0) ? 0:1);
-  UInt partNumY = roiHeight/pcCU->getPic()->getMinCUHeight() + (((refPixlY%pcCU->getPic()->getMinCUHeight()) == 0) ? 0:1);
-
-
-  for(Int partY = 0; partY < partNumY; partY++)
-  {
-    for(Int partX = 0; partX < partNumX; partX++)
-    {
-      Int currRefX = refPixlX + partX * pcCU->getPic()->getMinCUWidth();
-      Int currRefY = refPixlY + partY * pcCU->getPic()->getMinCUHeight();
-
-      Int currRefCtuX = currRefX/iMaxCuWidth;
-      Int currRefCtuY = currRefY/iMaxCuHeight;
-      Int currRefCtuRs = currRefCtuY * pcCU->getPic()->getFrameWidthInCtus() + currRefCtuX;
-
-      Int currRefRelX = currRefX%iMaxCuWidth;
-      Int currRefRelY = currRefY%iMaxCuHeight;
-
-      TComDataCU* pcCurrRefCU = pcCU->getPic()->getCtu( currRefCtuRs );
-      UInt uiAbsPartIdx = g_auiRasterToZscan[currRefRelX/pcCU->getPic()->getMinCUWidth() + (currRefRelY/pcCU->getPic()->getMinCUHeight())*pcCU->getPic()->getNumPartInCtuWidth()];
-
-      if(pcCurrRefCU->isInter(uiAbsPartIdx))
-      {
-        Int iRefL0 = pcCurrRefCU->getCUMvField(REF_PIC_LIST_0)->getRefIdx(uiAbsPartIdx);
-        Int iRefL1 = pcCurrRefCU->getCUMvField(REF_PIC_LIST_1)->getRefIdx(uiAbsPartIdx);
-
-        if( iRefL0 >= 0 )
-        {
-          if( pcCU->getSlice()->getRefPic( REF_PIC_LIST_0, iRefL0 )->getPOC() != pcCU->getSlice()->getPOC() )
-          {
-            return false;
-          }
-        }
-        
-        if( iRefL1 >= 0 )
-        {
-          if( pcCU->getSlice()->getRefPic( REF_PIC_LIST_1, iRefL1 )->getPOC() != pcCU->getSlice()->getPOC() )
-          {
-            return false;
-          }
-        }        
-      }
-    }
-  }
-
-  return true;
-}
-#endif
 
 Void TEncSearch::xIntraBCSearchMVCandUpdate(Distortion  uiSad, Int x, Int y, Distortion* uiSadBestCand, TComMv* cMVCand)
 {
