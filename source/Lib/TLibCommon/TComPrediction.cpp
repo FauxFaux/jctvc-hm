@@ -2241,10 +2241,7 @@ Void TComPrediction::calcPixelPred(TComDataCU* pcCU, Pel* pOrg [3], Pel *pPalett
       {
         paPixelValue[ch][uiScanIdx] = Pel(max<Int>( 0, ((pOrg[ch][uiYIdxRaster] * quantiserScale[ch] + rightShiftOffset[ch]) >> quantiserRightShift[ch]) ));
 
-#if SCM_V0041_RESTRICT_ESCAPE_RANGE
         assert( paPixelValue[ch][uiScanIdx] < ( 1 << ( pcCU->getSlice()->getSPS()->getBitDepth( CHANNEL_TYPE_LUMA ) + 1 ) ) );
-#endif
-
         paRecoValue[ch][uiYIdxRaster] = (((paPixelValue[ch][uiScanIdx]*g_invQuantScales[iQPrem[ch]])<<iQPper[ch]) + iAdd[ch])>>InvquantiserRightShift[ch];
         paRecoValue[ch][uiYIdxRaster] = Pel(ClipBD<Int>(paRecoValue[ch][uiYIdxRaster], bitDepths.recon[ch? 1:0]));
       }
@@ -2257,10 +2254,7 @@ Void TComPrediction::calcPixelPred(TComDataCU* pcCU, Pel* pOrg [3], Pel *pPalett
         {
           paPixelValue[ch][uiScanIdxC] = Pel(max<Int>( 0, ((pOrg[ch][uiYIdxRasterC] * quantiserScale[ch] + rightShiftOffset[ch]) >> quantiserRightShift[ch]) ));
 
-#if SCM_V0041_RESTRICT_ESCAPE_RANGE
           assert( paPixelValue[ch][uiScanIdxC] < ( 1 << ( pcCU->getSlice()->getSPS()->getBitDepth( CHANNEL_TYPE_CHROMA ) + 1 ) ) );
-#endif
-
           paRecoValue[ch][uiYIdxRasterC] = (((paPixelValue[ch][uiScanIdxC]*g_invQuantScales[iQPrem[ch]])<<iQPper[ch]) + iAdd[ch])>>InvquantiserRightShift[ch];
           paRecoValue[ch][uiYIdxRasterC] = Pel(ClipBD<Int>(paRecoValue[ch][uiYIdxRasterC], bitDepths.recon[ch? 1:0]));
         }
