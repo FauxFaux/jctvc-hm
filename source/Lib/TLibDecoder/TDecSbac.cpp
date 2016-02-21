@@ -864,11 +864,7 @@ Void TDecSbac::parsePLTModeSyntax(TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDe
         Bool bLastRun = iNumCopyIndexRuns == 0 && pSPoint[uiTraIdx] == lastRunType;
         if (!bLastRun)
         {
-#if SCM_V0065_PLT_RUN_FIX
           xDecodeRun(uiRun, pSPoint[uiTraIdx], siCurLevel, (uiTotal - iNumCopyIndexRuns - uiIdx - 1 - lastRunType) RExt__DECODER_DEBUG_BIT_STATISTICS_PASS_OPT_ARG(STATS__CABAC_DICTIONARY_BITS));
-#else
-          xDecodeRun(uiRun, pSPoint[uiTraIdx], siCurLevel, (uiTotal - iNumCopyIndexRuns - uiIdx - 1) RExt__DECODER_DEBUG_BIT_STATISTICS_PASS_OPT_ARG(STATS__CABAC_DICTIONARY_BITS));
-#endif
         }
         else
         {
