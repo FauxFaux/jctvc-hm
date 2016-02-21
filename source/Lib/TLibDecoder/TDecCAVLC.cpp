@@ -425,12 +425,10 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
               ppsScreenExtension.setUsePalettePredictor(uiCode);
               if ( uiCode )
               {
-#if SCM_V0042_ZERO_PPS_INITIALIZER
                 READ_UVLC( uiCode, "pps_num_palette_entries" );  
                 ppsScreenExtension.setNumPLTPred( uiCode );
                 if( uiCode )
                 {
-#endif
                 READ_FLAG( uiCode, "monochrome_palette_flag" );
                 ppsScreenExtension.setMonochromePaletteFlag( uiCode != 0 );
                 READ_UVLC( uiCode, "luma_bit_depth_entry_minus8" );
@@ -440,10 +438,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
                   READ_UVLC( uiCode, "chroma_bit_depth_entry_minus8" );
                   ppsScreenExtension.setPalettePredictorBitDepth( CHANNEL_TYPE_CHROMA, uiCode + 8 );
                 }
-#if !SCM_V0042_ZERO_PPS_INITIALIZER
-                READ_UVLC( uiCode, "num_palette_entries_minus1" ); uiCode++;
-                ppsScreenExtension.setNumPLTPred( uiCode );
-#endif
                 for ( Int k=0; k < (ppsScreenExtension.getMonochromePaletteFlag() ? 1 : 3); k++ )
                 {
                   for ( Int j=0; j<ppsScreenExtension.getNumPLTPred(); j++ )
@@ -456,9 +450,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
                     ppsScreenExtension.getPLTPred( k )[j] = uiCode;
                   }
                 }
-#if SCM_V0042_ZERO_PPS_INITIALIZER
-                }
-#endif
+               }
               }
               else
               {
