@@ -3427,9 +3427,7 @@ Bool TComDataCU::isBipredRestriction( UInt puIdx, Bool bCheckIBCRestricion) cons
       b8x8BiPredRestricted = (
         !mvL0Int && !mvL1Int && !IdenticalMV && 
         (getSlice()->getPPS()->getPpsScreenExtension().getUseIntraBlockCopy()) 
-#if SCM_V0056_BIPRED_REST_TWO_VERS
         &&(getSlice()->getSPS()->getUseSAO() || !getSlice()->getPPS()->getPicDisableDeblockingFilterFlag() || getSlice()->getPPS()->getDeblockingFilterOverrideEnabledFlag())
-#endif
         );
     }
     return b8x8BiPredRestricted; 
