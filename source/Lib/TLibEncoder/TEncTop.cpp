@@ -714,9 +714,7 @@ Void TEncTop::xInitSPS()
   m_cSPS.getSpsScreenExtension().setPLTMaxSize( m_uiPLTMaxSize );
   m_cSPS.getSpsScreenExtension().setPLTMaxPredSize( m_uiPLTMaxPredSize );
   m_cSPS.getSpsScreenExtension().setMotionVectorResolutionControlIdc( m_motionVectorResolutionControlIdc );
-#if SCM_V0043_RESTRICT_MAX_PALETTE_PRED_SIZE
   assert( m_uiPLTMaxPredSize <= 128 );
-#endif
 }
 
 #if U0132_TARGET_BITS_SATURATION

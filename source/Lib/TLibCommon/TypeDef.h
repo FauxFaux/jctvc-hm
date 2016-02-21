@@ -176,7 +176,6 @@
 //------------------------------------------------
 
 #define SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC     0 ///< JCTVC-U0181: storage of both versions of the current decoded picture into the DPB, treating pictures with in-loop filtering on/off differently, and increase the value of maxDpbPicBuf equal to 7 for profiles supporting IBC
-#define SCM_V0043_RESTRICT_MAX_PALETTE_PRED_SIZE         1 ///< JCTVC-V0043: restriction for maximum palette predictor size
 #define SCM_V0065_PLT_RUN_FIX                            1 ///< JCTVC-V0065: modified formula for computing PaletteMaxRun including consideration of copy_above_indices_for_final_run_flag
 #define SCM_V0049_ROUND_IBC_MERGE_MV                     1 ///< JCTVC-V0049: Round merge MVs when ref picture is curr pic
 #define SCM_V0034_PLT_ENCODER_OPT420                     1 ///< JCTVC-V0034: take into account whether pixel's chroma matters

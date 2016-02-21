@@ -961,9 +961,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
               {
                 READ_UVLC( uiCode, "palette_max_size" );                      screenExtension.setPLTMaxSize( uiCode );
                 READ_UVLC( uiCode, "delta_palette_max_predictor_size" );      screenExtension.setPLTMaxPredSize( uiCode+screenExtension.getPLTMaxSize() );
-#if SCM_V0043_RESTRICT_MAX_PALETTE_PRED_SIZE
                 assert( screenExtension.getPLTMaxPredSize() <= 128 );
-#endif
                 assert(screenExtension.getPLTMaxSize() != 0 || screenExtension.getPLTMaxPredSize() == 0);
 
                 READ_FLAG( uiCode, "sps_palette_predictor_initializer_flag" );
