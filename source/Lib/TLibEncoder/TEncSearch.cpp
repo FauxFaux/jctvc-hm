@@ -6232,13 +6232,9 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
  */
 Void TEncSearch::xRestrictBipredMergeCand( TComDataCU* pcCU, UInt puIdx, TComMvField* mvFieldNeighbours, UChar* interDirNeighbours, Int numValidMergeCand )
 {
-#if SCM_V0048_BIPRED_REST_MV_REF==0
-  if ( pcCU->isBipredRestriction(puIdx) )
-#endif 
   {
     for( UInt mergeCand = 0; mergeCand < numValidMergeCand; ++mergeCand )
     {
-#if SCM_V0048_BIPRED_REST_MV_REF
       if ( interDirNeighbours[mergeCand] == 3 )
       {
       Bool b8x8BiPredRestricted = pcCU->is8x8BipredRestriction(
@@ -6250,16 +6246,10 @@ Void TEncSearch::xRestrictBipredMergeCand( TComDataCU* pcCU, UInt puIdx, TComMvF
  
       if (pcCU->isBipredRestriction(puIdx,b8x8BiPredRestricted))
       {
-#else
-      if ( interDirNeighbours[mergeCand] == 3 )
-      {
-#endif 
         interDirNeighbours[mergeCand] = 1;
         mvFieldNeighbours[(mergeCand << 1) + 1].setMvField(TComMv(0,0), -1);
       }
-#if SCM_V0048_BIPRED_REST_MV_REF
      }
-#endif 
     }
   }
 }
@@ -6309,11 +6299,7 @@ Bool TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv* 
   AMVPInfo     aacAMVPInfo[2][33];
 
   Int          iRefIdx[2]={0,0}; //If un-initialized, may cause SEGV in bi-directional prediction iterative stage.
-#if SCM_V0048_BIPRED_REST_MV_REF
   Int          iRefIdxBi[2] = {-1,-1};
-#else
-  Int          iRefIdxBi[2];
-#endif 
 
   UInt         uiPartAddr;
   Int          iRoiWidth, iRoiHeight;
@@ -6613,12 +6599,8 @@ Bool TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv* 
 
         if ( !bChanged )
         {
-#if SCM_V0048_BIPRED_REST_MV_REF
           Bool b8x8BiPredRestricted = pcCU->is8x8BipredRestriction(cMvBi[0],cMvBi[1],iRefIdxBi[0],iRefIdxBi[1]);
           if ( uiCostBi <= uiCost[0] && uiCostBi <= uiCost[1] && !pcCU->isBipredRestriction(iPartIdx,b8x8BiPredRestricted) )
-#else
-          if ( uiCostBi <= uiCost[0] && uiCostBi <= uiCost[1] )
-#endif 
           {
             xCopyAMVPInfo(&aacAMVPInfo[0][iRefIdxBi[0]], pcCU->getCUMvField(REF_PIC_LIST_0)->getAMVPInfo());
             xCheckBestMVP(pcCU, REF_PIC_LIST_0, cMvBi[0], cMvPredBi[0][iRefIdxBi[0]], aaiMvpIdxBi[0][iRefIdxBi[0]], uiBits[2], uiCostBi);
@@ -6658,12 +6640,8 @@ Bool TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv* 
     if (bTestNormalMC)
     {
 #endif
-#if SCM_V0048_BIPRED_REST_MV_REF
      Bool b8x8BiPredRestricted = pcCU->is8x8BipredRestriction(cMvBi[0],cMvBi[1],iRefIdxBi[0],iRefIdxBi[1]);
      if ( uiCostBi <= uiCost[0] && uiCostBi <= uiCost[1] && !pcCU->isBipredRestriction(iPartIdx,b8x8BiPredRestricted) )
-#else
-    if ( uiCostBi <= uiCost[0] && uiCostBi <= uiCost[1])
-#endif 
     {
       uiLastMode = 2;
       pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMv( cMvBi[0], ePartSize, uiPartAddr, 0, iPartIdx );

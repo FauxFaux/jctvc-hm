@@ -296,7 +296,6 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       }
     }
 
-#if SCM_V0048_BIPRED_REST_MV_REF
     Bool b8x8BiPredRestricted = false;
     if(pcCU->getInterDir(uiSubPartIdx) == 3)
     {
@@ -309,9 +308,6 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       b8x8BiPredRestricted = pcCU->is8x8BipredRestriction(cMv[0],cMv[1],iRefIdxBi[0],iRefIdxBi[1]);                
     }        
     if ( (pcCU->getInterDir(uiSubPartIdx) == 3) && pcSubCU->isBipredRestriction(uiPartIdx,b8x8BiPredRestricted) )
-#else
-    if ( (pcCU->getInterDir(uiSubPartIdx) == 3) && pcSubCU->isBipredRestriction(uiPartIdx) )
-#endif 
     {
       pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMv( TComMv(0,0), ePartSize, uiSubPartIdx, uiDepth, uiPartIdx);
       pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( -1, ePartSize, uiSubPartIdx, uiDepth, uiPartIdx);

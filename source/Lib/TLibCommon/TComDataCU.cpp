@@ -3361,54 +3361,35 @@ Void TComDataCU::fillMvpCand ( const UInt partIdx, const UInt partAddr, const Re
 
 Void TComDataCU::xRestrictBipredMergeCand( UInt puIdx, TComMvField* mvFieldNeighbours, UChar* interDirNeighbours, Int numValidMergeCand )
 {
-#if SCM_V0048_BIPRED_REST_MV_REF==0
-  if ( isBipredRestriction(puIdx) )
-#endif 
+  for( UInt mergeCand = 0; mergeCand < numValidMergeCand; ++mergeCand )
   {
-    for( UInt mergeCand = 0; mergeCand < numValidMergeCand; ++mergeCand )
+    if ( interDirNeighbours[mergeCand] == 3 )
     {
-#if SCM_V0048_BIPRED_REST_MV_REF
-      if ( interDirNeighbours[mergeCand] == 3 )
-      {
       Bool b8x8BiPredRestricted = is8x8BipredRestriction(
         mvFieldNeighbours[(mergeCand << 1)].getMv(),
         mvFieldNeighbours[(mergeCand << 1) + 1].getMv(),
         mvFieldNeighbours[(mergeCand << 1)].getRefIdx(),
         mvFieldNeighbours[(mergeCand << 1) + 1].getRefIdx()
         );
- 
+
       if (isBipredRestriction(puIdx,b8x8BiPredRestricted))
       {
-#else
-      if ( interDirNeighbours[mergeCand] == 3 )
-      {
-#endif 
         interDirNeighbours[mergeCand] = 1;
         mvFieldNeighbours[(mergeCand << 1) + 1].setMvField(TComMv(0,0), -1);
       }
-#if SCM_V0048_BIPRED_REST_MV_REF
-     }
-#endif 
+ 
     }
   }
 }
 
-#if SCM_V0048_BIPRED_REST_MV_REF
 Bool TComDataCU::isBipredRestriction( UInt puIdx, Bool bCheckIBCRestricion) const
-#else
-Bool TComDataCU::isBipredRestriction(UInt puIdx) const
-#endif 
 {
   Int width = 0;
   Int height = 0;
   UInt partAddr;
 
   getPartIndexAndSize( puIdx, partAddr, width, height );
-#if SCM_V0048_BIPRED_REST_MV_REF
   if(bCheckIBCRestricion)
-#else
-  if(getSlice()->getPPS()->getPpsScreenExtension().getUseIntraBlockCopy() && !getSlice()->getUseIntegerMv())
-#endif 
   {
     if(getWidth(0) <= 8 && getHeight(0) <= 8)
     {
@@ -3426,7 +3407,7 @@ Bool TComDataCU::isBipredRestriction(UInt puIdx) const
   return false;
 }
 
-#if SCM_V0048_BIPRED_REST_MV_REF
+
   Bool TComDataCU::is8x8BipredRestriction(TComMv mvL0,TComMv mvL1, Int iRefIdxL0, Int iRefIdxL1 ) const
   {
     if(iRefIdxL0 < -1 || iRefIdxL0 >= MAX_NUM_REF)
@@ -3453,7 +3434,7 @@ Bool TComDataCU::isBipredRestriction(UInt puIdx) const
     }
     return b8x8BiPredRestricted; 
   }
-#endif 
+ 
 
 Bool TComDataCU::hasAssociatedACTFlag( UInt uiAbsPartIdx )
 {
