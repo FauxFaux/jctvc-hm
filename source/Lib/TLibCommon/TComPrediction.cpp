@@ -910,12 +910,10 @@ Void TComPrediction::preCalcPLTIndexRD(TComDataCU* pcCU, Pel *Palette[3], Pel* p
       uiPos = uiY * uiWidth + uiX;
       UInt uiPosC = (uiY>>uiScaleY) * (uiWidth>>uiScaleX) + (uiX>>uiScaleX);
       UInt* indError = m_indError[uiPos];
-#if SCM_V0034_PLT_ENCODER_OPT420
       Int localAdjC = distAdjC;
       Bool discardChroma = uiY&uiScaleY || uiX&uiScaleX;
       if (discardChroma) localAdjC+=SCM_V0034_PLT_CHROMA_SHIFT_ADJ;
       UInt round = localAdjC ? (1 << (localAdjC-1)) : 0;
-#endif
       uiBestIdx=0;
       uiMinError = MAX_UINT;
      
@@ -923,7 +921,6 @@ Void TComPrediction::preCalcPLTIndexRD(TComDataCU* pcCU, Pel *Palette[3], Pel* p
       uiPLTIdx = 0;
       while (uiPLTIdx < uiPLTSize)
       {
-#if SCM_V0034_PLT_ENCODER_OPT420
         iTemp = Palette[1][uiPLTIdx] - pSrc[1][uiPosC];
         uiAbsError = iTemp * iTemp;
         iTemp = Palette[2][uiPLTIdx] - pSrc[2][uiPosC];
@@ -932,15 +929,6 @@ Void TComPrediction::preCalcPLTIndexRD(TComDataCU* pcCU, Pel *Palette[3], Pel* p
         iTemp = Palette[0][uiPLTIdx] - pSrc[0][uiPos];
         uiAbsError += (iTemp * iTemp) >> distAdjY;
         indError[uiPLTIdx] = discardChroma ? (iTemp * iTemp) >> distAdjY : uiAbsError;
-#else
-        iTemp = Palette[0][uiPLTIdx] - pSrc[0][uiPos];
-        uiAbsError = (iTemp * iTemp) >> distAdjY;
-        iTemp = Palette[1][uiPLTIdx] - pSrc[1][uiPosC];
-        uiAbsError += (iTemp * iTemp) >> distAdjC;
-        iTemp = Palette[2][uiPLTIdx] - pSrc[2][uiPosC];
-        uiAbsError += (iTemp * iTemp) >> distAdjC;
-        indError[uiPLTIdx] = uiAbsError;
-#endif
 
         if (uiAbsError < uiMinError)
         {
@@ -962,12 +950,9 @@ Void TComPrediction::preCalcPLTIndexRD(TComDataCU* pcCU, Pel *Palette[3], Pel* p
         if (pcCU->getCUTransquantBypass(0))
         {
           errorTemp = 0;
-#if SCM_V0034_PLT_ENCODER_OPT420
           UInt uiNumTotalBits = pcCU->getSlice()->getSPS()->getBitDepth(CHANNEL_TYPE_LUMA);
           if (!discardChroma) uiNumTotalBits += pcCU->getSlice()->getSPS()->getBitDepth(CHANNEL_TYPE_CHROMA)<<1;
-#else
-          UInt uiNumTotalBits = pcCU->getSlice()->getSPS()->getBitDepth(CHANNEL_TYPE_LUMA) + (pcCU->getSlice()->getSPS()->getBitDepth(CHANNEL_TYPE_CHROMA)<<1);
-#endif
+
           rdCost += pcCost->getLambda() * uiNumTotalBits;
           if (uiMinError > iErrorLimit)
           {
@@ -978,11 +963,8 @@ Void TComPrediction::preCalcPLTIndexRD(TComDataCU* pcCU, Pel *Palette[3], Pel* p
         else
         {
           Pel pOrg[3] = { pSrc[0][uiPos], pSrc[1][uiPosC], pSrc[2][uiPosC] };
-#if SCM_V0034_PLT_ENCODER_OPT420
           rdCost = calcPixelPredRD(pcCU, pOrg, pcCost, &errorTemp, discardChroma);
-#else
-          rdCost = calcPixelPredRD(pcCU, pOrg, pcCost, &errorTemp);
-#endif
+
           if (rdCost < uiMinError && uiMinError > iErrorLimit)
           {
             m_cIndexBlock[uiPos] -= maxSpsPltSize;
@@ -1477,13 +1459,8 @@ Void  TComPrediction::derivePLTLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
     }
   }
 
-#if SCM_V0034_PLT_ENCODER_OPT420
   UInt pltPredSamples[MAX_PLT_SIZE][5];
   memset(pltPredSamples, 0, 5*MAX_PLT_SIZE*sizeof(UInt));
-#else
-  UInt pltPredSamples[MAX_PLT_SIZE][4];
-  memset(pltPredSamples, 0, 4*MAX_PLT_SIZE*sizeof(UInt));
-#endif
   Int iErrorLimitSqr = 3 * getPLTErrLimit()*getPLTErrLimit();
 
   UInt uiAbsError;
@@ -1496,9 +1473,7 @@ Void  TComPrediction::derivePLTLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
       uiPos = uiY * uiWidth + uiX;
       UInt uiPosC = (uiY>>uiScaleY) * (uiWidth>>uiScaleX) + (uiX>>uiScaleX);
       UInt uiBestIdx=0, uiPLTIdx = 0;
-#if SCM_V0034_PLT_ENCODER_OPT420
       Bool discardChroma = uiY&uiScaleY || uiX&uiScaleX;
-#endif
       uiMinError = MAX_UINT;
 
       while (uiPLTIdx < uiPLTSize)
@@ -1538,7 +1513,6 @@ Void  TComPrediction::derivePLTLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
       {
         pltPredSamples[uiBestIdx][0]++;
         pltPredSamples[uiBestIdx][1] += pSrc[0][uiPos];
-#if SCM_V0034_PLT_ENCODER_OPT420
         if (!discardChroma)
         {
           pltPredSamples[uiBestIdx][2] += SCM_V0034_PLT_CHROMA_SETTINGS*pSrc[1][uiPosC];
@@ -1551,10 +1525,6 @@ Void  TComPrediction::derivePLTLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
           pltPredSamples[uiBestIdx][3] += pSrc[2][uiPosC];
           pltPredSamples[uiBestIdx][4]++;
         }
-#else
-        pltPredSamples[uiBestIdx][2] += pSrc[1][uiPosC];
-        pltPredSamples[uiBestIdx][3] += pSrc[2][uiPosC];
-#endif
         m_cIndexBlock[uiPos] = uiBestIdx;
       }
       else
@@ -1571,16 +1541,9 @@ Void  TComPrediction::derivePLTLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
   {
     if(pltPredSamples[i][0] > 0)
     {
-#if SCM_V0034_PLT_ENCODER_OPT420
       Palette[0][uiPLTSizeTemp] = (pltPredSamples[i][1]+pltPredSamples[i][0]/2)/pltPredSamples[i][0];
       Palette[1][uiPLTSizeTemp] = (pltPredSamples[i][2]+pltPredSamples[i][4]/2)/pltPredSamples[i][4];
       Palette[2][uiPLTSizeTemp] = (pltPredSamples[i][3]+pltPredSamples[i][4]/2)/pltPredSamples[i][4];
-#else
-      Int iHalf = pltPredSamples[i][0]>>1;
-      Palette[0][uiPLTSizeTemp] = (pltPredSamples[i][1]+iHalf)/pltPredSamples[i][0];
-      Palette[1][uiPLTSizeTemp] = (pltPredSamples[i][2]+iHalf)/pltPredSamples[i][0];
-      Palette[2][uiPLTSizeTemp] = (pltPredSamples[i][3]+iHalf)/pltPredSamples[i][0];
-#endif
 
       Double dMinError = pcCost->getLambda()*(pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]+2*pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]); 
 
@@ -1706,15 +1669,10 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
   UInt uiScaleX = pcCU->getPic()->getComponentScaleX(COMPONENT_Cb);
   UInt uiScaleY = pcCU->getPic()->getComponentScaleY(COMPONENT_Cb);
 
-#if SCM_V0034_PLT_ENCODER_OPT420
   Int distAdjY = DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA] - 8) << 1);
   Int distAdjC = DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1);
   UInt pltPredSamples[MAX_PLT_SIZE][5], noSamples[MAX_PLT_SIZE];
   memset(pltPredSamples, 0, 5*MAX_PLT_SIZE*sizeof(UInt));
-#else
-  UInt pltPredSamples[MAX_PLT_SIZE][4], noSamples[MAX_PLT_SIZE];
-  memset(pltPredSamples, 0, 4*MAX_PLT_SIZE*sizeof(UInt));
-#endif
   Int iErrorLimitSqr = pcCU->getCUTransquantBypass(0) ? 0 : 3 * getPLTErrLimit()*getPLTErrLimit(); //ZF
 
   Pel *pPred[3]  = { pcCU->getLastPLTInLcuFinal(0), pcCU->getLastPLTInLcuFinal(1), pcCU->getLastPLTInLcuFinal(2) };
@@ -1727,11 +1685,9 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
       uiPos = uiY * uiWidth + uiX;
 
       UInt uiPosC = (uiY>>uiScaleY) * (uiWidth>>uiScaleX) + (uiX>>uiScaleX);
-#if SCM_V0034_PLT_ENCODER_OPT420
       Int  localAdjC = distAdjC;
       Bool discardChroma = uiY&uiScaleY || uiX&uiScaleX;
       if (discardChroma) localAdjC+=SCM_V0034_PLT_CHROMA_SHIFT_ADJ;
-#endif
 
       uiBestIdx=0;
       UInt uiMinError = MAX_UINT;
@@ -1740,19 +1696,11 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
       while (uiPLTIdx < uiPLTSize)
       {
         Int iTemp=Palette[0][uiPLTIdx] - pSrc[0][uiPos];
-#if SCM_V0034_PLT_ENCODER_OPT420
         UInt uiAbsError = ( iTemp * iTemp ) >> distAdjY;
         iTemp           = Palette[1][uiPLTIdx] - pSrc[1][uiPosC];
         uiAbsError     += ( iTemp * iTemp ) >> localAdjC;
         iTemp           = Palette[2][uiPLTIdx] - pSrc[2][uiPosC];
         uiAbsError     += ( iTemp * iTemp ) >> localAdjC;
-#else
-        UInt uiAbsError = (( iTemp * iTemp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]-8) << 1));
-        iTemp=Palette[1][uiPLTIdx] - pSrc[1][uiPosC];
-        uiAbsError+=(( iTemp * iTemp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-        iTemp=Palette[2][uiPLTIdx] - pSrc[2][uiPosC];
-        uiAbsError+=(( iTemp * iTemp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-#endif
 
         if (uiAbsError < uiMinError)
         {
@@ -1771,11 +1719,8 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
       {
         UInt errorTemp;
         Pel pOrg[3]={ pSrc[0][uiPos],  pSrc[1][uiPosC],  pSrc[2][uiPosC]};
-#if SCM_V0034_PLT_ENCODER_OPT420
         Double rdCost=calcPixelPredRD(pcCU, pOrg, pcCost, &errorTemp, discardChroma);
-#else
-        Double rdCost=calcPixelPredRD(pcCU, pOrg, pcCost, &errorTemp); 
-#endif
+
         if (rdCost<uiMinError) 
         {
           escape=1;
@@ -1786,7 +1731,6 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
       {
         pltPredSamples[uiBestIdx][0]++;
         pltPredSamples[uiBestIdx][1] += pSrc[0][uiPos];
-#if SCM_V0034_PLT_ENCODER_OPT420
         if (!discardChroma)
         {
           pltPredSamples[uiBestIdx][2] += SCM_V0034_PLT_CHROMA_SETTINGS*pSrc[1][uiPosC];
@@ -1799,10 +1743,6 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
           pltPredSamples[uiBestIdx][3] += pSrc[2][uiPosC];
           pltPredSamples[uiBestIdx][4]++;
         }
-#else
-        pltPredSamples[uiBestIdx][2] += pSrc[1][uiPosC];
-        pltPredSamples[uiBestIdx][3] += pSrc[2][uiPosC];
-#endif
         m_cIndexBlock[uiPos] = uiBestIdx;
       }
       else
@@ -1818,16 +1758,9 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
   {
     if(pltPredSamples[i][0]>0)
     {
-#if SCM_V0034_PLT_ENCODER_OPT420
       pPaletteTemp[0][uiPLTSizeTemp] = (pltPredSamples[i][1]+pltPredSamples[i][0]/2)/pltPredSamples[i][0];
       pPaletteTemp[1][uiPLTSizeTemp] = (pltPredSamples[i][2]+pltPredSamples[i][4]/2)/pltPredSamples[i][4];
       pPaletteTemp[2][uiPLTSizeTemp] = (pltPredSamples[i][3]+pltPredSamples[i][4]/2)/pltPredSamples[i][4];
-#else
-      Int iHalf = pltPredSamples[i][0]>>1;
-      pPaletteTemp[0][uiPLTSizeTemp] = (pltPredSamples[i][1]+iHalf)/pltPredSamples[i][0];
-      pPaletteTemp[1][uiPLTSizeTemp] = (pltPredSamples[i][2]+iHalf)/pltPredSamples[i][0];
-      pPaletteTemp[2][uiPLTSizeTemp] = (pltPredSamples[i][3]+iHalf)/pltPredSamples[i][0];
-#endif
 
       noSamples[uiPLTSizeTemp]=pltPredSamples[i][0];
 
@@ -1844,7 +1777,6 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
 
             UInt uiPosC = (uiY>>uiScaleY) * (uiWidth>>uiScaleX) + (uiX>>uiScaleX);
             Int iTemp=pPaletteTemp[0][uiPLTSizeTemp] - pSrc[0][uiPos];
-#if SCM_V0034_PLT_ENCODER_OPT420
             Int  localAdjC = distAdjC;
             if (uiY&uiScaleY || uiX&uiScaleX) localAdjC+=SCM_V0034_PLT_CHROMA_SHIFT_ADJ;
             uiMinError += ( iTemp * iTemp ) >> distAdjY;
@@ -1852,13 +1784,6 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
             uiMinError += ( iTemp * iTemp ) >> localAdjC;
             iTemp       = pPaletteTemp[2][uiPLTSizeTemp] - pSrc[2][uiPosC];
             uiMinError += ( iTemp * iTemp ) >> localAdjC;
-#else
-            uiMinError += (( iTemp * iTemp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]-8) << 1));
-            iTemp=pPaletteTemp[1][uiPLTSizeTemp] - pSrc[1][uiPosC];
-            uiMinError+=(( iTemp * iTemp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-            iTemp=pPaletteTemp[2][uiPLTSizeTemp] - pSrc[2][uiPosC];
-            uiMinError+=(( iTemp * iTemp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-#endif
           }
         }
       }
@@ -1884,7 +1809,6 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
               UInt uiPosC = (uiY>>uiScaleY) * (uiWidth>>uiScaleX) + (uiX>>uiScaleX);
 
               Int iTemp=pPred[0][testedPltPred] - pSrc[0][uiPos];
-#if SCM_V0034_PLT_ENCODER_OPT420
               Int  localAdjC = distAdjC;
               if (uiY&uiScaleY || uiX&uiScaleX) localAdjC+=SCM_V0034_PLT_CHROMA_SHIFT_ADJ;
               uiAbsError += ( iTemp * iTemp ) >> distAdjY;
@@ -1892,13 +1816,6 @@ Void  TComPrediction::derivePLTLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
               uiAbsError += ( iTemp * iTemp ) >> localAdjC;
               iTemp       = pPred[2][testedPltPred] - pSrc[2][uiPosC];
               uiAbsError += ( iTemp * iTemp ) >> localAdjC;
-#else
-              uiAbsError += (( iTemp * iTemp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]-8) << 1));
-              iTemp=pPred[1][testedPltPred] - pSrc[1][uiPosC];
-              uiAbsError+=(( iTemp * iTemp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-              iTemp=pPred[2][testedPltPred] - pSrc[2][uiPosC];
-              uiAbsError+=(( iTemp * iTemp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-#endif
             }
           }
           if (uiAbsError>uiMinError)
@@ -2323,11 +2240,7 @@ UInt TComPrediction::getEpExGolombNumBins(UInt uiSymbol, UInt uiCount)
   return numBins;
 }
 
-#if SCM_V0034_PLT_ENCODER_OPT420
 Double TComPrediction::calcPixelPredRD(TComDataCU* pcCU, Pel pOrg[3], TComRdCost *pcCost, UInt *error, Bool discardChroma)
-#else
-Double TComPrediction::calcPixelPredRD(TComDataCU* pcCU, Pel pOrg[3], TComRdCost *pcCost, UInt *error)
-#endif
 {
   Pel paPixelValue[3], paRecoValue[3]; 
   Int iQPcurr=Int(pcCU->getQP(0));
@@ -2368,11 +2281,7 @@ Double TComPrediction::calcPixelPredRD(TComDataCU* pcCU, Pel pOrg[3], TComRdCost
     }
 
     BitDepths bitDepths = pcCU->getSlice()->getSPS()->getBitDepths();
-#if SCM_V0034_PLT_ENCODER_OPT420
     for (UInt ch = 0; ch < (discardChroma ? 1 : MAX_NUM_COMPONENT); ch ++)
-#else
-    for (UInt ch = 0; ch < MAX_NUM_COMPONENT; ch ++)
-#endif
     {
       paPixelValue[ch] = Pel(Clip3<Int>( 0, m_uiMaxVal[ch], ((pOrg[ch] * m_quantiserScale[ch] + m_rightShiftOffset[ch]) >> m_quantiserRightShift[ch]) ));
       paRecoValue[ch]= (((paPixelValue[ch]*m_invQuantScales[ch])<<m_iQPper[ch]) + 32)>>IQUANT_SHIFT;
@@ -2726,22 +2635,15 @@ Void TComPrediction::derivePLTLossyForcePrediction(TComDataCU *pcCU, Pel *Palett
     }
   }
 
-#if SCM_V0034_PLT_ENCODER_OPT420
   UInt pltPredSamples[MAX_PLT_SIZE][5];
   memset(pltPredSamples, 0, 5*MAX_PLT_SIZE*sizeof(UInt));
-#else
-  UInt pltPredSamples[MAX_PLT_SIZE][4];
-  memset(pltPredSamples, 0, 4*MAX_PLT_SIZE*sizeof(UInt));
-#endif
   Int iErrorLimitSqr = 3 * getPLTErrLimit()*getPLTErrLimit();
 
   for (UInt uiY = 0; uiY < uiHeight; uiY++)
   {
     for (UInt uiX = 0; uiX < uiWidth; uiX++)
     {
-#if SCM_V0034_PLT_ENCODER_OPT420
       Bool discardChroma = uiY&uiScaleY || uiX&uiScaleX;
-#endif
       uiPos = uiY * uiWidth + uiX;
 
       UInt uiPosC = (uiY>>uiScaleY) * (uiWidth>>uiScaleX) + (uiX>>uiScaleX);
@@ -2786,7 +2688,6 @@ Void TComPrediction::derivePLTLossyForcePrediction(TComDataCU *pcCU, Pel *Palett
       {
         pltPredSamples[uiBestIdx][0]++;
         pltPredSamples[uiBestIdx][1] += pSrc[0][uiPos];
-#if SCM_V0034_PLT_ENCODER_OPT420
         if (!discardChroma)
         {
           pltPredSamples[uiBestIdx][2] += SCM_V0034_PLT_CHROMA_SETTINGS*pSrc[1][uiPosC];
@@ -2799,10 +2700,6 @@ Void TComPrediction::derivePLTLossyForcePrediction(TComDataCU *pcCU, Pel *Palett
           pltPredSamples[uiBestIdx][3] += pSrc[2][uiPosC];
           pltPredSamples[uiBestIdx][4]++;
         }
-#else
-        pltPredSamples[uiBestIdx][2] += pSrc[1][uiPosC];
-        pltPredSamples[uiBestIdx][3] += pSrc[2][uiPosC];
-#endif
         m_cIndexBlock[uiPos] = uiBestIdx;
       }
       else
@@ -2820,17 +2717,9 @@ Void TComPrediction::derivePLTLossyForcePrediction(TComDataCU *pcCU, Pel *Palett
   {
     if(pltPredSamples[i][0] > 0)
     {
-#if SCM_V0034_PLT_ENCODER_OPT420
       Palette[0][uiPLTSizeTemp] = (pltPredSamples[i][1]+pltPredSamples[i][0]/2)/pltPredSamples[i][0];
       Palette[1][uiPLTSizeTemp] = (pltPredSamples[i][2]+pltPredSamples[i][4]/2)/pltPredSamples[i][4];
       Palette[2][uiPLTSizeTemp] = (pltPredSamples[i][3]+pltPredSamples[i][4]/2)/pltPredSamples[i][4];
-#else
-      Int iHalf = pltPredSamples[i][0]>>1;
-
-      Palette[0][uiPLTSizeTemp] = (pltPredSamples[i][1]+iHalf)/pltPredSamples[i][0];
-      Palette[1][uiPLTSizeTemp] = (pltPredSamples[i][2]+iHalf)/pltPredSamples[i][0];
-      Palette[2][uiPLTSizeTemp] = (pltPredSamples[i][3]+iHalf)/pltPredSamples[i][0];
-#endif
 
       Double uiMinError = pcCost->getLambda()*(pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]+2*pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]), 
         uiAbsError;
