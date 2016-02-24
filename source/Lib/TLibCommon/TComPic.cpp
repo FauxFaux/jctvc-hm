@@ -70,6 +70,7 @@ TComPic::TComPic()
 
 TComPic::~TComPic()
 {
+  destroy();
 }
 
 #if SCM_U0181_STORAGE_BOTH_VERSIONS_CURR_DEC_PIC
@@ -101,6 +102,8 @@ Void TComPic::copyPicInfo( const TComPic& sComPic )
 Void TComPic::create( const TComSPS &sps, const TComPPS &pps,
                       UInt uiPLTMaxSize, UInt uiPLTMaxPredSize, const Bool bIsVirtual )
 {
+  destroy();
+
   const ChromaFormat chromaFormatIDC = sps.getChromaFormatIdc();
   const Int          iWidth          = sps.getPicWidthInLumaSamples();
   const Int          iHeight         = sps.getPicHeightInLumaSamples();

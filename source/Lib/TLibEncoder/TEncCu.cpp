@@ -816,7 +816,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
         // speedup for inter frames
         Double intraCost = MAX_DOUBLE;
         Double dIntraBcCostPred = 0.0;
-
         if ( ( !rpcBestCU->getSlice()->getPPS()->getPpsScreenExtension().getUseIntraBlockCopy() && rpcBestCU->getSlice()->getSliceType() == I_SLICE ) ||
              ( rpcBestCU->getSlice()->getPPS()->getPpsScreenExtension().getUseIntraBlockCopy() && rpcBestCU->getSlice()->isOnlyCurrentPictureAsReference() ) ||
              !rpcBestCU->isSkipped(0) ) // avoid very complex intra if it is unlikely

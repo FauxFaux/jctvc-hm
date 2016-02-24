@@ -69,11 +69,17 @@ TComPicSym::TComPicSym()
 #endif
 {}
 
+TComPicSym::~TComPicSym()
+{
+  destroy();
+}
+
 Void TComPicSym::create  ( const TComSPS &sps, const TComPPS &pps, UInt uiMaxDepth
   , UInt uiPLTMaxSize, UInt uiPLTMaxPredSize
   )
 {
-  UInt i;
+  destroy();
+
   m_sps = sps;
   m_pps = pps;
 
@@ -108,7 +114,7 @@ Void TComPicSym::create  ( const TComSPS &sps, const TComPPS &pps, UInt uiMaxDep
   }
 #endif
 
-  for ( i=0; i<m_numCtusInFrame ; i++ )
+  for (UInt i=0; i<m_numCtusInFrame ; i++ )
   {
     m_pictureCtuArray[i] = new TComDataCU;
     m_pictureCtuArray[i]->create( chromaFormatIDC, m_numPartitionsInCtu, uiMaxCuWidth, uiMaxCuHeight, false, uiMaxCuWidth >> m_uhTotalDepth
@@ -123,7 +129,7 @@ Void TComPicSym::create  ( const TComSPS &sps, const TComPPS &pps, UInt uiMaxDep
   m_puiTileIdxMap    = new UInt[m_numCtusInFrame];
   m_ctuRsToTsAddrMap = new UInt[m_numCtusInFrame+1];
 
-  for( i=0; i<m_numCtusInFrame; i++ )
+  for(UInt i=0; i<m_numCtusInFrame; i++ )
   {
     m_ctuTsToRsAddrMap[i] = i;
     m_ctuRsToTsAddrMap[i] = i;
