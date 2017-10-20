@@ -3047,8 +3047,8 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
     pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
   }
 
-  xRestrictBipredMergeCand( pcCU, iPUIdx, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
   pcCU->roundMergeCandidates(cMvFieldNeighbours, numValidMergeCand);
+  xRestrictBipredMergeCand( pcCU, iPUIdx, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
 
   ruiCost = std::numeric_limits<Distortion>::max();
   if ( iCostCalcType )
@@ -9602,8 +9602,8 @@ Bool TEncSearch::predIntraBCSearch( TComDataCU * pcCU,
         pcCU->getInterMergeCandidates( partAddr, partIdx, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
       }
 
-      xRestrictBipredMergeCand( pcCU, partIdx, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
       pcCU->roundMergeCandidates(cMvFieldNeighbours, numValidMergeCand);
+      xRestrictBipredMergeCand( pcCU, partIdx, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
 
       for ( mrgIdxTemp = 0; mrgIdxTemp < numValidMergeCand; mrgIdxTemp++ )
       {
@@ -9889,8 +9889,8 @@ Bool TEncSearch::predMixedIntraBCInterSearch( TComDataCU * pcCU,
             pcCU->getInterMergeCandidates( partAddr, partIdx, cMvFieldNeighboursIBC, uhInterDirNeighboursIBC, numValidMergeCandIBC );
           }
 
-          xRestrictBipredMergeCand( pcCU, partIdx, cMvFieldNeighboursIBC, uhInterDirNeighboursIBC, numValidMergeCandIBC );
           pcCU->roundMergeCandidates(cMvFieldNeighboursIBC, numValidMergeCandIBC);
+          xRestrictBipredMergeCand( pcCU, partIdx, cMvFieldNeighboursIBC, uhInterDirNeighboursIBC, numValidMergeCandIBC );
 
           for ( mrgIdxTemp = 0; mrgIdxTemp < numValidMergeCandIBC; mrgIdxTemp++ )
           {
