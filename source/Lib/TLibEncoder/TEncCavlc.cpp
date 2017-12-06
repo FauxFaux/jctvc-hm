@@ -1100,16 +1100,16 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       assert(numberValidComponents <= COMPONENT_Cr+1);
     }
 
-    if (pcSlice->getPPS()->getPpsRangeExtension().getChromaQpOffsetListEnabledFlag())
-    {
-      WRITE_FLAG(pcSlice->getUseChromaQpAdj(), "cu_chroma_qp_offset_enabled_flag");
-    }
-
     if( pcSlice->getPPS()->getPpsScreenExtension().getUseSliceACTOffset() )
     {
       WRITE_SVLC( pcSlice->getSliceActQpDelta(COMPONENT_Y), "slice_act_y_qp_offset");
       WRITE_SVLC( pcSlice->getSliceActQpDelta(COMPONENT_Cb), "slice_act_cb_qp_offset");
       WRITE_SVLC( pcSlice->getSliceActQpDelta(COMPONENT_Cr), "slice_act_cr_qp_offset");
+    }
+
+    if (pcSlice->getPPS()->getPpsRangeExtension().getChromaQpOffsetListEnabledFlag())
+    {
+      WRITE_FLAG(pcSlice->getUseChromaQpAdj(), "cu_chroma_qp_offset_enabled_flag");
     }
 
     if (pcSlice->getPPS()->getDeblockingFilterControlPresentFlag())

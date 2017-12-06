@@ -1610,15 +1610,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice* pcSlice, ParameterSetManager *param
       }
     }
 
-    if (pps->getPpsRangeExtension().getChromaQpOffsetListEnabledFlag())
-    {
-      READ_FLAG(uiCode, "cu_chroma_qp_offset_enabled_flag"); pcSlice->setUseChromaQpAdj(uiCode != 0);
-    }
-    else
-    {
-      pcSlice->setUseChromaQpAdj(false);
-    }
-
     if( pps->getPpsScreenExtension().getUseSliceACTOffset () )
     {
       READ_SVLC(iCode, "slice_act_y_qp_offset"); pcSlice->setSliceActQpDelta(COMPONENT_Y, iCode);
@@ -1660,6 +1651,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice* pcSlice, ParameterSetManager *param
       assert( pcSlice->getSliceActQpDelta(COMPONENT_Cr) <=  12 );
       assert( (pps->getPpsScreenExtension().getActQpOffset(COMPONENT_Cr) + pcSlice->getSliceActQpDelta(COMPONENT_Cr)) >= -12 );
       assert( (pps->getPpsScreenExtension().getActQpOffset(COMPONENT_Cr) + pcSlice->getSliceActQpDelta(COMPONENT_Cr)) <=  12 );
+    }
+
+    if (pps->getPpsRangeExtension().getChromaQpOffsetListEnabledFlag())
+    {
+      READ_FLAG(uiCode, "cu_chroma_qp_offset_enabled_flag"); pcSlice->setUseChromaQpAdj(uiCode != 0);
+    }
+    else
+    {
+      pcSlice->setUseChromaQpAdj(false);
     }
 
     if (pps->getDeblockingFilterControlPresentFlag())
