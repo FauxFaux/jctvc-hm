@@ -1061,7 +1061,7 @@ Void TDecCu::xDecodePaletteTexture( TComDataCU* pcCU, const UInt partIdx, Pel* p
   Pel* piPicReco         = pcCU->getPic()->getPicYuvRec()->getAddr(compID, pcCU->getCtuRsAddr(), pcCU->getZorderIdxInCtu()+partIdx);
   const UInt picStride = pcCU->getPic()->getPicYuvRec()->getStride(compID);
   UInt idx = 0;
-  Pel iValue = 0;
+  TCoeff iValue = 0;
   Bool bRotation = pcCU->getPaletteScanRotationModeFlag(partIdx);
 
   if(!bRotation)
@@ -1088,7 +1088,7 @@ Void TDecCu::xDecodePaletteTexture( TComDataCU* pcCU, const UInt partIdx, Pel* p
             Int InvquantiserRightShift = IQUANT_SHIFT;
             Int iAdd = 1 << (InvquantiserRightShift - 1);
             iValue = ((((pPixelValue[idxComp]*g_invQuantScales[iQPrem])<<iQPper) + iAdd)>>InvquantiserRightShift);
-            iValue = Pel(ClipBD<Int>(iValue, pcCU->getSlice()->getSPS()->getBitDepths().recon[compID?1:0]));
+            iValue = ClipBD<Int>(iValue, pcCU->getSlice()->getSPS()->getBitDepths().recon[compID?1:0]);
           }
         }
         else
@@ -1124,7 +1124,7 @@ Void TDecCu::xDecodePaletteTexture( TComDataCU* pcCU, const UInt partIdx, Pel* p
             Int InvquantiserRightShift = IQUANT_SHIFT;
             Int iAdd = 1 << (InvquantiserRightShift - 1);
             iValue = ((((pPixelValue[idxComp]*g_invQuantScales[iQPrem])<<iQPper) + iAdd)>>InvquantiserRightShift);
-            iValue = Pel(ClipBD<Int>(iValue, pcCU->getSlice()->getSPS()->getBitDepths().recon[compID?1:0]));
+            iValue = ClipBD<Int>(iValue, pcCU->getSlice()->getSPS()->getBitDepths().recon[compID?1:0]);
           }
         }
         else

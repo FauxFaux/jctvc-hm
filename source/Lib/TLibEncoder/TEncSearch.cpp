@@ -13732,6 +13732,7 @@ Void TEncSearch::xCalcPixelPred(TComDataCU* pcCU, Pel* pOrg [3], Pel*paPixelValu
   Int rightShiftOffset[3];
   Int invquantiserRightShift[3];
   Int iAdd[3];
+  TCoeff iTmpValue = 0;
   for (UInt ch = 0; ch < MAX_NUM_COMPONENT; ch++)
   {
     assert(!pcCU->getColourTransform(0));
@@ -13801,8 +13802,8 @@ Void TEncSearch::xCalcPixelPred(TComDataCU* pcCU, Pel* pOrg [3], Pel*paPixelValu
         paPixelValue[ch][scanIdx] = Pel(max<Int>( 0, ((pOrg[ch][YIdxRaster] * quantiserScale[ch] + rightShiftOffset[ch]) >> quantiserRightShift[ch]) ));
 
         assert( paPixelValue[ch][scanIdx] < ( 1 << ( pcCU->getSlice()->getSPS()->getBitDepth( CHANNEL_TYPE_LUMA ) + 1 ) ) );
-        paRecoValue[ch][YIdxRaster] = (((paPixelValue[ch][scanIdx]*g_invQuantScales[iQPrem[ch]])<<iQPper[ch]) + iAdd[ch])>>invquantiserRightShift[ch];
-        paRecoValue[ch][YIdxRaster] = Pel(ClipBD<Int>(paRecoValue[ch][YIdxRaster], bitDepths.recon[ch? 1:0]));
+        iTmpValue = (((paPixelValue[ch][scanIdx]*g_invQuantScales[iQPrem[ch]])<<iQPper[ch]) + iAdd[ch])>>invquantiserRightShift[ch];
+        paRecoValue[ch][YIdxRaster] = Pel(ClipBD<Int>(iTmpValue, bitDepths.recon[ch? 1:0]));
       }
       else
       {
@@ -13814,8 +13815,8 @@ Void TEncSearch::xCalcPixelPred(TComDataCU* pcCU, Pel* pOrg [3], Pel*paPixelValu
           paPixelValue[ch][scanIdxC] = Pel(max<Int>( 0, ((pOrg[ch][YIdxRasterC] * quantiserScale[ch] + rightShiftOffset[ch]) >> quantiserRightShift[ch]) ));
 
           assert( paPixelValue[ch][scanIdxC] < ( 1 << ( pcCU->getSlice()->getSPS()->getBitDepth( CHANNEL_TYPE_CHROMA ) + 1 ) ) );
-          paRecoValue[ch][YIdxRasterC] = (((paPixelValue[ch][scanIdxC]*g_invQuantScales[iQPrem[ch]])<<iQPper[ch]) + iAdd[ch])>>invquantiserRightShift[ch];
-          paRecoValue[ch][YIdxRasterC] = Pel(ClipBD<Int>(paRecoValue[ch][YIdxRasterC], bitDepths.recon[ch? 1:0]));
+          iTmpValue = (((paPixelValue[ch][scanIdxC]*g_invQuantScales[iQPrem[ch]])<<iQPper[ch]) + iAdd[ch])>>invquantiserRightShift[ch];
+          paRecoValue[ch][YIdxRasterC] = Pel(ClipBD<Int>(iTmpValue, bitDepths.recon[ch? 1:0]));
         }
       }
     }
