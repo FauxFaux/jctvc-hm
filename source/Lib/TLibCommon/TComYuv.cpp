@@ -567,9 +567,19 @@ Void TComYuv::convert(const Bool extendedPrecision, const UInt pixX, const UInt 
           co <<= (iShiftChroma + 1);
         }
         Int t = y0 - (cg>>1);
+#if RExt__HIGH_BIT_DEPTH_SUPPORT
         pDst0[x] = cg + t;
         pDst1[x] = t - (co>>1);
         pDst2[x] = co + pDst1[x];
+#else
+        Int t0, t1, t2;
+        t0 = cg + t;
+        t1 = t - (co>>1);
+        t2 = co + t1;
+        pDst0[x] = Clip3<Int>(CoeffMinY,CoeffMaxY, t0);
+        pDst1[x] = Clip3<Int>(CoeffMinC,CoeffMaxC, t1);
+        pDst2[x] = Clip3<Int>(CoeffMinC,CoeffMaxC, t2);
+#endif
         if(!bLossless)
         {
           pDst0[x] = (pDst0[x] + iRoundLuma)   >> iShiftLuma;
