@@ -364,26 +364,32 @@ Void TDecSlice::decompressSlice(TComInputBitstream** ppcSubstreams, TComPic* pcP
 Void TDecSlice::xSetPredFromPPS(Pel lastPalette[MAX_NUM_COMPONENT][MAX_PALETTE_PRED_SIZE], UChar lastPaletteSize[MAX_NUM_COMPONENT], const TComPPS *pcPPS, const TComSPS *pcSPS)
 {
   UInt num = std::min(pcPPS->getPpsScreenExtension().getNumPalettePred(), pcSPS->getSpsScreenExtension().getPaletteMaxPredSize());
-  if( num )
+  if (num == 0)
   {
-    for(int i=0; i<3; i++)
-    {
-      lastPaletteSize[i] = num;
-      memcpy(lastPalette[i], pcPPS->getPpsScreenExtension().getPalettePred(i), num*sizeof(Pel));
-    }
+    memset(lastPaletteSize, 0, MAX_NUM_COMPONENT*sizeof(UChar));
+    return;
+  }
+
+  for(int i=0; i<3; i++)
+  {
+    lastPaletteSize[i] = num;
+    memcpy(lastPalette[i], pcPPS->getPpsScreenExtension().getPalettePred(i), num*sizeof(Pel));
   }
 }
 
 Void TDecSlice::xSetPredFromSPS(Pel lastPalette[MAX_NUM_COMPONENT][MAX_PALETTE_PRED_SIZE], UChar lastPaletteSize[MAX_NUM_COMPONENT], const TComSPS *pcSPS)
 {
   UInt num = std::min(pcSPS->getSpsScreenExtension().getNumPalettePred(), pcSPS->getSpsScreenExtension().getPaletteMaxPredSize());
-  if( num )
+  if (num == 0)
   {
-    for(int i=0; i<3; i++)
-    {
-      lastPaletteSize[i] = num;
-      memcpy(lastPalette[i], pcSPS->getSpsScreenExtension().getPalettePred(i), num*sizeof(Pel));
-    }
+    memset(lastPaletteSize, 0, MAX_NUM_COMPONENT*sizeof(UChar));
+    return;
+  }
+
+  for(int i=0; i<3; i++)
+  {
+    lastPaletteSize[i] = num;
+    memcpy(lastPalette[i], pcSPS->getSpsScreenExtension().getPalettePred(i), num*sizeof(Pel));
   }
 }
 
