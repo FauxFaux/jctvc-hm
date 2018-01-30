@@ -830,6 +830,15 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
             rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
           }
 
+#if MCTS_ENC_CHECK
+          if ( m_pcEncCfg->getTMCTSSEITileConstraint() || (rpcBestCU->getPredictionMode(0) == NUMBER_OF_PREDICTION_MODES) ||
+              ((!m_pcEncCfg->getDisableIntraPUsInInterSlices()) && (
+              (rpcBestCU->getCbf(0, COMPONENT_Y) != 0) ||
+              ((rpcBestCU->getCbf(0, COMPONENT_Cb) != 0) && (numberValidComponents > COMPONENT_Cb)) ||
+              ((rpcBestCU->getCbf(0, COMPONENT_Cr) != 0) && (numberValidComponents > COMPONENT_Cr))  // avoid very complex intra if it is unlikely
+              )))
+          {
+#else
           if( rpcBestCU->getPredictionMode(0) == NUMBER_OF_PREDICTION_MODES ||
               ((!m_pcEncCfg->getDisableIntraPUsInInterSlices()) && (
                (rpcBestCU->getCbf( 0, COMPONENT_Y  ) != 0)                                            ||
@@ -837,6 +846,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
               ((rpcBestCU->getCbf( 0, COMPONENT_Cr ) != 0) && (numberValidComponents > COMPONENT_Cr))  ) // avoid very complex intra if it is unlikely
             ))
           {
+#endif 
             if(rpcBestCU->getSlice()->getPPS()->getPpsScreenExtension().getUseColourTrans() && ( !bIsLosslessMode || (sps.getBitDepth( CHANNEL_TYPE_LUMA ) == sps.getBitDepth( CHANNEL_TYPE_CHROMA ))))
             {
               Double tempIntraCost = MAX_DOUBLE;
@@ -1794,7 +1804,12 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   }
   UChar uhDepth = rpcTempCU->getDepth( 0 );
   rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to CTU level
+#if MCTS_ENC_CHECK
+  UInt numSpatialMergeCandidates = 0;
+  rpcTempCU->getInterMergeCandidates( 0, 0, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand, numSpatialMergeCandidates );
+#else
   rpcTempCU->getInterMergeCandidates( 0, 0, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
+#endif
   rpcTempCU->roundMergeCandidates(cMvFieldNeighbours, numValidMergeCand);
   rpcTempCU->xRestrictBipredMergeCand(0, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
 
@@ -1803,6 +1818,12 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   {
     mergeCandBuffer[ui] = 0;
   }
+#if MCTS_ENC_CHECK
+  if (m_pcEncCfg->getTMCTSSEITileConstraint() && rpcTempCU->isLastColumnCTUInTile())
+  {
+    numValidMergeCand = numSpatialMergeCandidates;
+  }
+#endif
 
   Bool bestIsSkip = false;
 
@@ -1845,6 +1866,13 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
           rpcTempCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[0 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
           rpcTempCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
 
+#if MCTS_ENC_CHECK
+          if ( m_pcEncCfg->getTMCTSSEITileConstraint () && (!(m_pcPredSearch->checkTMctsMvp(rpcTempCU))))
+          {
+            continue;
+          }
+
+#endif
           // do MC
           m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[uhDepth] );
           Bool bColourTrans = (m_pcEncCfg->getRGBFormatFlag() && rpcBestCU->getSlice()->getPPS()->getPpsScreenExtension().getUseColourTrans())? true : false;
@@ -2039,6 +2067,10 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   rpcTempCU->setPredModeSubParts  ( MODE_INTER, 0, uhDepth );
   rpcTempCU->setChromaQpAdjSubParts( rpcTempCU->getCUTransquantBypass(0) ? 0 : m_cuChromaQpOffsetIdxPlus1, 0, uhDepth );
 
+#if MCTS_ENC_CHECK
+  rpcTempCU->setTMctsMvpIsValid(true);
+#endif
+
 #if AMP_MRG
   rpcTempCU->setMergeAMP (true);
   Bool valid = m_pcPredSearch->predInterSearch ( rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcPredYuvTemp[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcRecoYuvTemp[uhDepth] DEBUG_STRING_PASS_INTO(sTest), false, bUseMRG, iMVCandList );
@@ -2053,6 +2085,13 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
 
 #if AMP_MRG
   if ( !rpcTempCU->getMergeAMP() )
+  {
+    return;
+  }
+#endif
+
+#if MCTS_ENC_CHECK
+  if (m_pcEncCfg->getTMCTSSEITileConstraint() && (!rpcTempCU->getTMctsMvpIsValid()))
   {
     return;
   }
@@ -2653,7 +2692,12 @@ Void TEncCu::xCheckRDCostIntraBCMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*&
   Int height = rpcTempCU->getHeight( 0 );
   UChar depth = rpcTempCU->getDepth( 0 );
   rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, depth );
+#if MCTS_ENC_CHECK
+  UInt numSpatialMergeCandidates = 0;
+  rpcTempCU->getInterMergeCandidates( 0, 0, cMvFieldNeighbours,interDirNeighbours, numValidMergeCand, numSpatialMergeCandidates );
+#else
   rpcTempCU->getInterMergeCandidates( 0, 0, cMvFieldNeighbours,interDirNeighbours, numValidMergeCand );
+#endif
   rpcTempCU->roundMergeCandidates(cMvFieldNeighbours, numValidMergeCand);
   rpcTempCU->xRestrictBipredMergeCand( 0, cMvFieldNeighbours, interDirNeighbours, numValidMergeCand );
 
@@ -2662,6 +2706,13 @@ Void TEncCu::xCheckRDCostIntraBCMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*&
   {
     mergeCandBuffer[ui] = 0;
   }
+
+#if MCTS_ENC_CHECK
+  if (m_pcEncCfg->getTMCTSSEITileConstraint() && rpcTempCU->isLastColumnCTUInTile())
+  {
+    numValidMergeCand = numSpatialMergeCandidates;
+  }
+#endif
 
   Bool bestIsSkip = false;
 
@@ -2711,7 +2762,14 @@ Void TEncCu::xCheckRDCostIntraBCMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*&
           rpcTempCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[0 + 2*mergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
           rpcTempCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[1 + 2*mergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
 
-                                                                                                                               // do MC
+#if MCTS_ENC_CHECK
+          if ( m_pcEncCfg->getTMCTSSEITileConstraint () && (!(m_pcPredSearch->checkTMctsMvp(rpcTempCU))))
+          {
+            continue;
+          }
+#endif
+
+          // do MC
           m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[depth] );
           Bool bColourTrans = (m_pcEncCfg->getRGBFormatFlag() && rpcBestCU->getSlice()->getPPS()->getPpsScreenExtension().getUseColourTrans())? true : false;
 
@@ -2901,6 +2959,10 @@ Void TEncCu::xCheckRDCostIntraBC( TComDataCU *&rpcBestCU,
   rpcTempCU->setIntraDirSubParts( CHANNEL_TYPE_CHROMA, DC_IDX, 0, depth );
   rpcTempCU->setChromaQpAdjSubParts( rpcTempCU->getCUTransquantBypass(0) ? 0 : m_cuChromaQpOffsetIdxPlus1, 0, depth );
 
+#if MCTS_ENC_CHECK
+  rpcTempCU->setTMctsMvpIsValid(true);
+#endif
+
   // intra BV search
   const TComSPS &sps=*(rpcTempCU->getSlice()->getSPS());
   if( rpcTempCU->getSlice()->getPPS()->getPpsScreenExtension().getUseColourTrans () && m_pcEncCfg->getRGBFormatFlag() && (!rpcTempCU->getCUTransquantBypass(0) || (sps.getBitDepth( CHANNEL_TYPE_LUMA ) == sps.getBitDepth( CHANNEL_TYPE_CHROMA ))) )
@@ -2933,9 +2995,15 @@ Void TEncCu::xCheckRDCostIntraBC( TComDataCU *&rpcBestCU,
     m_ppcOrigYuv[depth]->copyFromPicYuv( rpcTempCU->getPic()->getPicYuvOrg(), rpcTempCU->getCtuRsAddr(), rpcTempCU->getZorderIdxInCtu() );
     rpcTempCU->getPic()->exchangePicYuvRec();
   }
-
+  
   if (bValid)
   {
+#if MCTS_ENC_CHECK
+    if (m_pcEncCfg->getTMCTSSEITileConstraint() && (!rpcTempCU->getTMctsMvpIsValid()))
+    {
+      return;
+    }
+#endif
     TComDataCU *rpcTempCUPre = NULL;
     Bool   bEnableTrans      = rpcBestCU->getSlice()->getPPS()->getPpsScreenExtension().getUseColourTrans();
     UChar  colourTransform = 0;
@@ -3091,6 +3159,10 @@ Void TEncCu::xCheckRDCostIntraBCMixed( TComDataCU *&rpcBestCU,
   rpcTempCU->setIntraDirSubParts( CHANNEL_TYPE_CHROMA, DC_IDX, 0, depth );
   rpcTempCU->setChromaQpAdjSubParts( rpcTempCU->getCUTransquantBypass( 0 ) ? 0 : m_cuChromaQpOffsetIdxPlus1, 0, depth );
 
+#if MCTS_ENC_CHECK
+  rpcTempCU->setTMctsMvpIsValid(true);
+#endif
+
   Bool bValid = m_pcPredSearch->predMixedIntraBCInterSearch( rpcTempCU,
                                                              m_ppcOrigYuv[depth],
                                                              m_ppcPredYuvTemp[depth],
@@ -3103,6 +3175,12 @@ Void TEncCu::xCheckRDCostIntraBCMixed( TComDataCU *&rpcBestCU,
 
   if ( bValid )
   {
+#if MCTS_ENC_CHECK
+    if (m_pcEncCfg->getTMCTSSEITileConstraint() && (!rpcTempCU->getTMctsMvpIsValid()))
+    {
+      return;
+    }
+#endif
     TComDataCU *rpcTempCUPre = NULL;
     Bool   bEnableTrans      = rpcBestCU->getSlice()->getPPS()->getPpsScreenExtension().getUseColourTrans();
     UChar  colourTransform = 0;

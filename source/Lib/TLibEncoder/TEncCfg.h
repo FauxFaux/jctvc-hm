@@ -333,6 +333,9 @@ protected:
   Bool      m_SOPDescriptionSEIEnabled;
   Bool      m_scalableNestingSEIEnabled;
   Bool      m_tmctsSEIEnabled;
+#if MCTS_ENC_CHECK
+  Bool      m_tmctsSEITileConstraint;
+#endif
   Bool      m_timeCodeSEIEnabled;
   Int       m_timeCodeSEINumTs;
   TComSEITimeSet   m_timeSetArray[MAX_TIMECODE_SEI_SETS];
@@ -867,6 +870,10 @@ public:
   Bool  getScalableNestingSEIEnabled() const                         { return m_scalableNestingSEIEnabled; }
   Void  setTMCTSSEIEnabled(Bool b)                                   { m_tmctsSEIEnabled = b; }
   Bool  getTMCTSSEIEnabled()                                         { return m_tmctsSEIEnabled; }
+#if MCTS_ENC_CHECK
+  Void  setTMCTSSEITileConstraint(Bool b)                            { m_tmctsSEITileConstraint = b; }
+  Bool  getTMCTSSEITileConstraint()                                  { return m_tmctsSEITileConstraint; }
+#endif
   Void  setTimeCodeSEIEnabled(Bool b)                                { m_timeCodeSEIEnabled = b; }
   Bool  getTimeCodeSEIEnabled()                                      { return m_timeCodeSEIEnabled; }
   Void  setNumberOfTimeSets(Int value)                               { m_timeCodeSEINumTs = value; }

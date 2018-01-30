@@ -114,6 +114,10 @@ private:
 
   Bool                    m_warningMessageSkipPicture;
 
+#if MCTS_ENC_CHECK
+  Bool                    m_tmctsCheckEnabled;
+
+#endif
   std::list<InputNALUnit*> m_prefixSEINALUs; /// Buffered up prefix SEI NAL Units.
 
   TComPic*                m_pcPicBeforeILF;
@@ -129,7 +133,10 @@ public:
   Void  destroy ();
 
   Void setDecodedPictureHashSEIEnabled(Int enabled) { m_cGopDecoder.setDecodedPictureHashSEIEnabled(enabled); }
+#if MCTS_ENC_CHECK
+  Void setTMctsCheckEnabled(Bool enabled) { m_tmctsCheckEnabled = enabled; }
 
+#endif  
   Void  init();
   Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay);
   Void  deletePicBuffer();
@@ -166,6 +173,9 @@ protected:
   Void      xDecodePPS(const std::vector<UChar> &naluData);
   Void      xUpdatePreviousTid0POC( TComSlice *pSlice ) { if ((pSlice->getTLayer()==0) && (pSlice->isReferenceNalu() && (pSlice->getNalUnitType()!=NAL_UNIT_CODED_SLICE_RASL_R)&& (pSlice->getNalUnitType()!=NAL_UNIT_CODED_SLICE_RADL_R))) { m_prevTid0POC=pSlice->getPOC(); } }
   Void      xParsePrefixSEImessages();
+#if MCTS_ENC_CHECK
+  Void      xAnalysePrefixSEImessages();
+#endif
   Void      xParsePrefixSEIsForUnknownVCLNal();
 
   Void    xSwapPicPoiterExeptTComPicYuvRefType(TComPic** picA, TComPic** picB);
