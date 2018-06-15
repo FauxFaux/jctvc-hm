@@ -580,7 +580,8 @@ namespace Profile
     MAINSTILLPICTURE = 3,
     MAINREXT = 4,
     HIGHTHROUGHPUTREXT = 5,
-    MAINSCC  = 9
+    MAINSCC  = 9,
+    HIGHTHROUGHPUTSCC = 11
   };
 }
 

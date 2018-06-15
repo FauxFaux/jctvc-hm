@@ -64,7 +64,8 @@ enum UIProfileName // this is used for determining profile strings, where multip
   UI_MAINSTILLPICTURE = 3,
   UI_MAINREXT = 4,
   UI_HIGHTHROUGHPUTREXT = 5,
-  UI_MAINSCC  = 9, // Placeholder profile for development
+  UI_MAINSCC = 9,
+  UI_HIGHTHROUGHPUTSCC = 11,
   // The following are RExt profiles, which would map to the MAINREXT profile idc.
   // The enumeration indicates the bit-depth constraint in the bottom 2 digits
   //                           the chroma format in the next digit
@@ -235,7 +236,8 @@ strToProfile[] =
   {"main10-still-picture", Profile::MAIN10             },
   {"main-RExt",            Profile::MAINREXT           },
   {"high-throughput-RExt", Profile::HIGHTHROUGHPUTREXT },
-  {"main-SCC",             Profile::MAINSCC            }
+  {"main-SCC",             Profile::MAINSCC            },
+  {"high-throughput-SCC",  Profile::HIGHTHROUGHPUTSCC  }
 };
 
 static const struct MapStrToUIProfileName
@@ -264,6 +266,10 @@ strToUIProfileName[] =
     {"main_SCC",                  UI_MAINSCC          },
     {"main-scc",                  UI_MAINSCC          },
     {"main_scc",                  UI_MAINSCC          },
+    {"high_throughput_SCC",       UI_HIGHTHROUGHPUTSCC },
+    {"high-throughput-SCC",       UI_HIGHTHROUGHPUTSCC },
+    {"high_throughput_scc",       UI_HIGHTHROUGHPUTSCC },
+    {"high-throughput-scc",       UI_HIGHTHROUGHPUTSCC },
     {"monochrome",                UI_MONOCHROME_8     },
     {"monochrome12",              UI_MONOCHROME_12    },
     {"monochrome16",              UI_MONOCHROME_16    },
@@ -1377,6 +1383,10 @@ Bool TAppEncCfg::parseCfg( Int argc, TChar* argv[] )
       m_profile = Profile::MAINSCC;
       m_onePictureOnlyConstraintFlag = false;
       break;
+    case UI_HIGHTHROUGHPUTSCC:
+      m_profile = Profile::HIGHTHROUGHPUTSCC;
+      m_onePictureOnlyConstraintFlag = false;
+      break;
     default:
       if (UIProfile >= 1000 && UIProfile <= 12316)
       {
@@ -1454,6 +1464,7 @@ Bool TAppEncCfg::parseCfg( Int argc, TChar* argv[] )
   switch (m_profile)
   {
     case Profile::HIGHTHROUGHPUTREXT:
+    case Profile::HIGHTHROUGHPUTSCC:
       {
         if (m_bitDepthConstraint == 0)
         {
@@ -1860,10 +1871,11 @@ Void TAppEncCfg::xCheckParameter()
     case Profile::MAINREXT:
     case Profile::HIGHTHROUGHPUTREXT:
     case Profile::MAINSCC:
+    case Profile::HIGHTHROUGHPUTSCC:
       {
         xConfirmPara(m_lowerBitRateConstraintFlag==false && m_intraConstraintFlag==false, "The lowerBitRateConstraint flag cannot be false when intraConstraintFlag is false");
         xConfirmPara(m_cabacBypassAlignmentEnabledFlag && m_profile!=Profile::HIGHTHROUGHPUTREXT, "AlignCABACBeforeBypass must not be enabled unless the high throughput profile is being used.");
-        xConfirmPara(m_useIntraBlockCopy && m_profile!=Profile::MAINSCC,  "UseIntraBlockCopy must not be enabled unless the main-SCC profile is being used.");
+        xConfirmPara(m_useIntraBlockCopy && !(m_profile==Profile::MAINSCC||m_profile==Profile::HIGHTHROUGHPUTSCC), "UseIntraBlockCopy must not be enabled unless the SCC profile is being used.");
         if (m_profile == Profile::MAINREXT)
         {
           const UInt intraIdx = m_intraConstraintFlag ? 1:0;
@@ -1898,7 +1910,7 @@ Void TAppEncCfg::xCheckParameter()
             fprintf(stderr, "********************************************************************************************************\n");
           }
         }
-        else if (m_profile == Profile::MAINSCC)
+        else if (m_profile == Profile::MAINSCC || m_profile == Profile::HIGHTHROUGHPUTSCC)
         {
           xConfirmPara(m_intraConstraintFlag, "intra constraint flag must be 0 for SCC profiles");
           xConfirmPara(m_onePictureOnlyConstraintFlag, "one-picture-only constraint flag shall be 0 for SCC profiles");
@@ -2039,7 +2051,7 @@ Void TAppEncCfg::xCheckParameter()
 
     m_useColourTrans = false;
   }
-  if ( m_useColourTrans && m_profile != Profile::MAINSCC )
+  if ( m_useColourTrans && !(m_profile == Profile::MAINSCC || m_profile == Profile::HIGHTHROUGHPUTSCC) )
   {
     fprintf(stderr, "***************************************************************************\n");
     fprintf(stderr, "** WARNING: Adaptive Colour transform can be used in SCC profile only    **\n");
@@ -2065,7 +2077,7 @@ Void TAppEncCfg::xCheckParameter()
 
     m_usePaletteMode = false;
   }
-  if (m_usePaletteMode && m_profile != Profile::MAINSCC)
+  if (m_usePaletteMode && !(m_profile == Profile::MAINSCC || m_profile == Profile::HIGHTHROUGHPUTSCC))
   {
     fprintf(stderr, "***************************************************************************\n");
     fprintf(stderr, "** WARNING: Palette mode can be used in SCC profile only    **\n");

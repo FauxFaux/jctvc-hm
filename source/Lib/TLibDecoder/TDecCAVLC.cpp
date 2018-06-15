@@ -1850,7 +1850,8 @@ Void TDecCavlc::parseProfileTier(ProfileTierLevel *ptl, const Bool /*bIsSubLayer
 
   if (ptl->getProfileIdc() == Profile::MAINREXT           || ptl->getProfileCompatibilityFlag(Profile::MAINREXT) ||
       ptl->getProfileIdc() == Profile::HIGHTHROUGHPUTREXT || ptl->getProfileCompatibilityFlag(Profile::HIGHTHROUGHPUTREXT) ||
-      ptl->getProfileIdc() == Profile::MAINSCC            || ptl->getProfileCompatibilityFlag(Profile::MAINSCC))
+      ptl->getProfileIdc() == Profile::MAINSCC            || ptl->getProfileCompatibilityFlag(Profile::MAINSCC) ||
+      ptl->getProfileIdc() == Profile::HIGHTHROUGHPUTSCC  || ptl->getProfileCompatibilityFlag(Profile::HIGHTHROUGHPUTSCC))
   {
     UInt maxBitDepth=16;
     READ_FLAG(    uiCode, PTL_TRACE_TEXT("max_12bit_constraint_flag"       )); if (uiCode) maxBitDepth=12;
@@ -1865,9 +1866,21 @@ Void TDecCavlc::parseProfileTier(ProfileTierLevel *ptl, const Bool /*bIsSubLayer
     READ_FLAG(    uiCode, PTL_TRACE_TEXT("intra_constraint_flag"           )); ptl->setIntraConstraintFlag(uiCode != 0);
     READ_FLAG(    uiCode, PTL_TRACE_TEXT("one_picture_only_constraint_flag")); ptl->setOnePictureOnlyConstraintFlag(uiCode != 0);
     READ_FLAG(    uiCode, PTL_TRACE_TEXT("lower_bit_rate_constraint_flag"  )); ptl->setLowerBitRateConstraintFlag(uiCode != 0);
-    READ_CODE(16, uiCode, PTL_TRACE_TEXT("reserved_zero_34bits[0..15]"     ));
-    READ_CODE(16, uiCode, PTL_TRACE_TEXT("reserved_zero_34bits[16..31]"    ));
-    READ_CODE(2,  uiCode, PTL_TRACE_TEXT("reserved_zero_34bits[32..33]"    ));
+    if (ptl->getProfileIdc() == Profile::HIGHTHROUGHPUTREXT || ptl->getProfileCompatibilityFlag(Profile::HIGHTHROUGHPUTREXT) ||
+        ptl->getProfileIdc() == Profile::MAINSCC            || ptl->getProfileCompatibilityFlag(Profile::MAINSCC) ||
+        ptl->getProfileIdc() == Profile::HIGHTHROUGHPUTSCC  || ptl->getProfileCompatibilityFlag(Profile::HIGHTHROUGHPUTSCC))
+    {
+      READ_FLAG(    uiCode, PTL_TRACE_TEXT("max_14bit_constraint_flag"       )); if (uiCode && maxBitDepth>14) maxBitDepth=14;
+      READ_CODE(16, uiCode, PTL_TRACE_TEXT("reserved_zero_33bits[0..15]"     ));
+      READ_CODE(16, uiCode, PTL_TRACE_TEXT("reserved_zero_33bits[16..31]"    ));
+      READ_FLAG(    uiCode, PTL_TRACE_TEXT("reserved_zero_33bits[32]"        ));
+    }
+    else
+    {
+      READ_CODE(16, uiCode, PTL_TRACE_TEXT("reserved_zero_34bits[0..15]"     ));
+      READ_CODE(16, uiCode, PTL_TRACE_TEXT("reserved_zero_34bits[16..31]"    ));
+      READ_CODE(2,  uiCode, PTL_TRACE_TEXT("reserved_zero_34bits[32..33]"    ));
+    }
   }
   else
   {
@@ -1898,7 +1911,8 @@ Void TDecCavlc::parseProfileTier(ProfileTierLevel *ptl, const Bool /*bIsSubLayer
        ptl->getProfileCompatibilityFlag(Profile::MAINSTILLPICTURE) ||
        ptl->getProfileCompatibilityFlag(Profile::MAINREXT) ||
        ptl->getProfileCompatibilityFlag(Profile::HIGHTHROUGHPUTREXT) ||
-       ptl->getProfileCompatibilityFlag(Profile::MAINSCC) )
+       ptl->getProfileCompatibilityFlag(Profile::MAINSCC) ||
+       ptl->getProfileCompatibilityFlag(Profile::HIGHTHROUGHPUTSCC) )
   {
     READ_FLAG(    uiCode, PTL_TRACE_TEXT("inbld_flag"                      )); assert(uiCode == 0);
   }

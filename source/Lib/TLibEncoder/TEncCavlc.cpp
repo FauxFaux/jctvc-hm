@@ -1199,7 +1199,8 @@ Void TEncCavlc::codeProfileTier( const ProfileTierLevel* ptl, const Bool /*bIsSu
   WRITE_FLAG(ptl->getNonPackedConstraintFlag(), PTL_TRACE_TEXT("non_packed_constraint_flag"      ));
   WRITE_FLAG(ptl->getFrameOnlyConstraintFlag(), PTL_TRACE_TEXT("frame_only_constraint_flag"      ));
 
-  if (ptl->getProfileIdc() == Profile::MAINREXT || ptl->getProfileIdc() == Profile::HIGHTHROUGHPUTREXT || ptl->getProfileIdc() == Profile::MAINSCC)
+  if (ptl->getProfileIdc() == Profile::MAINREXT || ptl->getProfileIdc() == Profile::HIGHTHROUGHPUTREXT ||
+      ptl->getProfileIdc() == Profile::MAINSCC  || ptl->getProfileIdc() == Profile::HIGHTHROUGHPUTSCC)
   {
     const UInt         bitDepthConstraint=ptl->getBitDepthConstraint();
     WRITE_FLAG(bitDepthConstraint<=12,          PTL_TRACE_TEXT("max_12bit_constraint_flag"       ));
@@ -1212,9 +1213,21 @@ Void TEncCavlc::codeProfileTier( const ProfileTierLevel* ptl, const Bool /*bIsSu
     WRITE_FLAG(ptl->getIntraConstraintFlag(),          PTL_TRACE_TEXT("intra_constraint_flag"           ));
     WRITE_FLAG(ptl->getOnePictureOnlyConstraintFlag(), PTL_TRACE_TEXT("one_picture_only_constraint_flag"));
     WRITE_FLAG(ptl->getLowerBitRateConstraintFlag(),   PTL_TRACE_TEXT("lower_bit_rate_constraint_flag"  ));
-    WRITE_CODE(0 , 16, PTL_TRACE_TEXT("reserved_zero_34bits[0..15]"     ));
-    WRITE_CODE(0 , 16, PTL_TRACE_TEXT("reserved_zero_34bits[16..31]"    ));
-    WRITE_CODE(0 ,  2, PTL_TRACE_TEXT("reserved_zero_34bits[32..33]"    ));
+
+    if (ptl->getProfileIdc() == Profile::HIGHTHROUGHPUTREXT ||
+        ptl->getProfileIdc() == Profile::MAINSCC || ptl->getProfileIdc() == Profile::HIGHTHROUGHPUTSCC)
+    {
+      WRITE_FLAG(bitDepthConstraint<=14, PTL_TRACE_TEXT("max_14bit_constraint_flag"));
+      WRITE_CODE(0 , 16, PTL_TRACE_TEXT("reserved_zero_33bits[0..15]"     ));
+      WRITE_CODE(0 , 16, PTL_TRACE_TEXT("reserved_zero_33bits[16..31]"    ));
+      WRITE_FLAG(0,      PTL_TRACE_TEXT("reserved_zero_33bits[32]"        ));
+    }
+    else
+    {
+      WRITE_CODE(0 , 16, PTL_TRACE_TEXT("reserved_zero_34bits[0..15]"     ));
+      WRITE_CODE(0 , 16, PTL_TRACE_TEXT("reserved_zero_34bits[16..31]"    ));
+      WRITE_CODE(0 ,  2, PTL_TRACE_TEXT("reserved_zero_34bits[32..33]"    ));
+    }
   }
   else if (ptl->getProfileIdc() == Profile::MAIN10)
   {
