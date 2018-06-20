@@ -341,7 +341,7 @@ Void TDecTop::remCurPicBefILFFromDPBDecDPBFullnessByOne( TComList<TComPic*>* pcL
           pcPic = NULL;
         }
        
-        TComList<TComPic*>::iterator tempIterPic = pcListPic->eraseElement( iterPic );
+        pcListPic->eraseElement( iterPic );
         break;
       }
 
