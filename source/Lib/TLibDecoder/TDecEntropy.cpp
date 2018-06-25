@@ -735,8 +735,8 @@ Void TDecEntropy::decodePaletteModeInfo( TComDataCU* pcCU, UInt absPartIdx, UInt
     m_pcEntropyDecoderIf->parsePaletteModeFlag( pcCU, absPartIdx, depth );
     if ( pcCU->getPaletteModeFlag( absPartIdx ) )
     {
-      m_pcEntropyDecoderIf->parsePaletteModeSyntax( pcCU, absPartIdx, depth, 3, bCodeDQP, isChromaQpAdjCoded );
-      pcCU->saveLastPaletteInLcuFinal( pcCU, absPartIdx, MAX_NUM_COMPONENT );
+      m_pcEntropyDecoderIf->parsePaletteModeSyntax( pcCU, absPartIdx, depth, pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3, bCodeDQP, isChromaQpAdjCoded );
+      pcCU->saveLastPaletteInLcuFinal( pcCU, absPartIdx, pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3 );
     }
   }
 }

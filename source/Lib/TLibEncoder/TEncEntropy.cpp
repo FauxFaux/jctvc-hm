@@ -106,11 +106,11 @@ Void TEncEntropy::encodePaletteModeInfo( TComDataCU* pcCU, UInt absPartIdx, Bool
     m_pcEntropyCoderIf->codePaletteModeFlag( pcCU, absPartIdx );
     if ( pcCU->getPaletteModeFlag( absPartIdx ) )
     {
-      m_pcEntropyCoderIf->codePaletteModeSyntax( pcCU, absPartIdx, 3, bCodeDQP, codeChromaQpAdj );
+      m_pcEntropyCoderIf->codePaletteModeSyntax( pcCU, absPartIdx, pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3, bCodeDQP, codeChromaQpAdj );
 
       if (!bRD)
       {
-        pcCU->saveLastPaletteInLcuFinal( pcCU, absPartIdx, MAX_NUM_COMPONENT );
+        pcCU->saveLastPaletteInLcuFinal( pcCU, absPartIdx, pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3 );
       }
     }
   }

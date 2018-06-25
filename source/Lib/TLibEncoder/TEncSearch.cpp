@@ -8044,7 +8044,7 @@ UInt TEncSearch::paletteSearch(TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rp
   UInt scaleY = pcCU->getPic()->getComponentScaleY(COMPONENT_Cb);
   UInt testMode=0;
   UInt paletteIdx = 0;
-  for (UInt ch = 0; ch < 3; ch++)
+  for (UInt ch = 0; ch < (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); ch++)
   {
     paOrig[ch] = pcOrgYuv->getAddr((ComponentID)ch, 0);
     paPalette[ch] = pcCU->getPalette(ch, 0);
@@ -8073,7 +8073,7 @@ UInt TEncSearch::paletteSearch(TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rp
   else
   {
     paletteSize = m_prevPaletteSize[iterNumber - MAX_PALETTE_ITER];
-    for (UInt ch = 0; ch < 3; ch++)
+    for (UInt ch = 0; ch < (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); ch++)
     {
       for ( paletteIdx = 0; paletteIdx < paletteSize; paletteIdx++)
       {
@@ -8087,12 +8087,12 @@ UInt TEncSearch::paletteSearch(TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rp
   pcCU->setPaletteSizeSubParts(0, paletteSize, 0, pcCU->getDepth(0));
   pcCU->setPaletteSizeSubParts(1, paletteSize, 0, pcCU->getDepth(0));
   pcCU->setPaletteSizeSubParts(2, paletteSize, 0, pcCU->getDepth(0));
-  xReorderPalette(pcCU, paPalette, 3);
+  xReorderPalette(pcCU, paPalette, pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3);
 
   if (iterNumber==0)
   {
     m_forcePaletteSize=paletteSize;
-    for (UInt ch = 0; ch < 3; ch++)
+    for (UInt ch = 0; ch < (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); ch++)
     {
       for ( paletteIdx = 0; paletteIdx < paletteSize; paletteIdx++)
       {
@@ -8106,7 +8106,7 @@ UInt TEncSearch::paletteSearch(TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rp
     if (paletteSize==m_forcePaletteSize)
     {
       samePalette=1;
-      for (UInt ch = 0; ch < 3; ch++)
+      for (UInt ch = 0; ch < (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); ch++)
       {
         for ( paletteIdx = 0; paletteIdx < paletteSize; paletteIdx++)
         {
@@ -8127,7 +8127,7 @@ UInt TEncSearch::paletteSearch(TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rp
   UInt calcErroBits = iterNumber < MAX_PALETTE_ITER ? 1 : 0;
   xPreCalcPaletteIndexRD(pcCU, paPalette, paOrig, pcCU->getWidth(0), pcCU->getHeight(0), paletteSize, m_pcRdCost, calcErroBits);
 
-  for (UInt ch = 0; ch < 3; ch++)
+  for (UInt ch = 0; ch < (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); ch++)
   {
     for ( paletteIdx = 0; paletteIdx < pcCU->getSlice()->getSPS()->getSpsScreenExtension().getPaletteMaxSize(); paletteIdx++)
     {
@@ -8679,7 +8679,7 @@ UInt TEncSearch::preCalcRD(TComDataCU* pcCU, Pel *Palette[3], UInt width, UInt h
   {
     if (removedIndicesBest[paletteIdx] == 0)
     {
-      for (UInt ch = 0; ch < 3; ch++)
+      for (UInt ch = 0; ch < (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1: 3); ch++)
       {
         m_prevPalette[iterNumber][ch][paletteCnt] = Palette[ch][paletteIdx];
       }
@@ -12875,7 +12875,7 @@ Void TEncSearch::xPreCalcPaletteIndexRD(TComDataCU* pcCU, Pel *Palette[3], Pel* 
       UInt posC = (y>>scaleY) * (width>>scaleX) + (x>>scaleX);
       UInt* indError = m_indError[pos];
       Int localAdjC = distAdjC;
-      Bool discardChroma = y&scaleY || x&scaleX;
+      Bool discardChroma = y&scaleY || x&scaleX || pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400;
       if (discardChroma) localAdjC+=SCM_V0034_PALETTE_CHROMA_SHIFT_ADJ;
       UInt round = localAdjC ? (1 << (localAdjC-1)) : 0;
       bestIdx=0;
@@ -12890,7 +12890,7 @@ Void TEncSearch::xPreCalcPaletteIndexRD(TComDataCU* pcCU, Pel *Palette[3], Pel* 
           {
             indError[paletteIdx] = absError = MAX_UINT;
           }
-          else
+          else if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
           {
             absError  = abs(Palette[1][paletteIdx] - pSrc[1][posC]);
             absError += abs(Palette[2][paletteIdx] - pSrc[2][posC]);
@@ -12904,14 +12904,26 @@ Void TEncSearch::xPreCalcPaletteIndexRD(TComDataCU* pcCU, Pel *Palette[3], Pel* 
               indError[paletteIdx] = 0;
             }
           }
+          else
+          {
+            absError = 0;
+            indError[paletteIdx] = 0;
+          }
         }
         else
         {
-          temp = Palette[1][paletteIdx] - pSrc[1][posC];
-          absError = temp * temp;
-          temp = Palette[2][paletteIdx] - pSrc[2][posC];
-          absError += temp * temp;
-          absError = (absError + round) >> localAdjC;
+          if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+          {
+            temp = Palette[1][paletteIdx] - pSrc[1][posC];
+            absError = temp * temp;
+            temp = Palette[2][paletteIdx] - pSrc[2][posC];
+            absError += temp * temp;
+            absError = (absError + round) >> localAdjC;
+          }
+          else
+          {
+            absError = 0;
+          }
           temp = Palette[0][paletteIdx] - pSrc[0][pos];
           absError += (temp * temp) >> distAdjY;
           indError[paletteIdx] = discardChroma ? (temp * temp) >> distAdjY : absError;
@@ -12952,7 +12964,12 @@ Void TEncSearch::xPreCalcPaletteIndexRD(TComDataCU* pcCU, Pel *Palette[3], Pel* 
         }
         else
         {
-          Pel pOrg[3] = { pSrc[0][pos], pSrc[1][posC], pSrc[2][posC] };
+          Pel pOrg[3] = { pSrc[0][pos], 0, 0 };
+          if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+          {
+            pOrg[1] = pSrc[1][posC];
+            pOrg[2] = pSrc[2][posC];
+          }
           rdCost = xCalcPixelPredRD(pcCU, pOrg, pcCost, &errorTemp, discardChroma);
 
           if (rdCost < minError && minError > errorLimit)
@@ -12968,10 +12985,9 @@ Void TEncSearch::xPreCalcPaletteIndexRD(TComDataCU* pcCU, Pel *Palette[3], Pel* 
     }
   }
 
-  pcCU->setPaletteEscapeSubParts(0, useEscapeFlag,0, pcCU->getDepth(0));
-  pcCU->setPaletteEscapeSubParts(1, useEscapeFlag,0, pcCU->getDepth(0));
-  pcCU->setPaletteEscapeSubParts(2, useEscapeFlag,0, pcCU->getDepth(0));
-
+  pcCU->setPaletteEscapeSubParts(0, useEscapeFlag, 0, pcCU->getDepth(0));
+  pcCU->setPaletteEscapeSubParts(1, useEscapeFlag, 0, pcCU->getDepth(0));
+  pcCU->setPaletteEscapeSubParts(2, useEscapeFlag, 0, pcCU->getDepth(0));
 }
 
 Void TEncSearch::xPreCalcPaletteIndex(TComDataCU* pcCU, Pel *Palette[3], Pel* pSrc[3], UInt width, UInt height, UInt paletteSize)
@@ -13164,10 +13180,13 @@ UInt TEncSearch::xFindCandidatePalettePredictors(UInt paletteIndBest[], TComData
     absError=0;
     Int iTemp=pPred[0][t] - Palette[0][paletteSizeTemp];
     absError += (iTemp * iTemp) >> DISTORTION_PRECISION_ADJUSTMENT((bitDepths.recon[CHANNEL_TYPE_LUMA] - 8) << 1);
-    iTemp=pPred[1][t] - Palette[1][paletteSizeTemp];
-    absError += (iTemp * iTemp) >> DISTORTION_PRECISION_ADJUSTMENT((bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8) << 1);
-    iTemp=pPred[2][t] - Palette[2][paletteSizeTemp];
-    absError += (iTemp * iTemp) >> DISTORTION_PRECISION_ADJUSTMENT((bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8) << 1);
+    if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+    {
+      iTemp = pPred[1][t] - Palette[1][paletteSizeTemp];
+      absError += (iTemp * iTemp) >> DISTORTION_PRECISION_ADJUSTMENT((bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8) << 1);
+      iTemp = pPred[2][t] - Palette[2][paletteSizeTemp];
+      absError += (iTemp * iTemp) >> DISTORTION_PRECISION_ADJUSTMENT((bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8) << 1);
+    }
 
     palettePredError[t] = absError;
     paletteIndBest[t] = t;
@@ -13221,7 +13240,14 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
     {
       pos = y * width + x;
       UInt posC = (y>>scaleY) * (width>>scaleX) + (x>>scaleX);
-      sElement.setAll(pSrc[0][pos], pSrc[1][posC], pSrc[2][posC]);
+      if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400)
+      {
+        sElement.setAll(pSrc[0][pos], 0, 0);
+      }
+      else
+      {
+        sElement.setAll(pSrc[0][pos], pSrc[1][posC], pSrc[2][posC]);
+      }
       Int i = 0;
       for (i = hisIdx - 1; i >= 0; i--)
       {
@@ -13305,7 +13331,14 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
     {
       pos = y * width + x;
       UInt posC = (y>>scaleY) * (width>>scaleX) + (x>>scaleX);
-      sElement.setAll(pSrc[0][pos], pSrc[1][posC], pSrc[2][posC]);
+      if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400)
+      {
+        sElement.setAll(pSrc[0][pos], 0, 0);
+      }
+      else
+      {
+        sElement.setAll(pSrc[0][pos], pSrc[1][posC], pSrc[2][posC]);
+      }
       bMatched = false;
       for (Int i = 0; i < initialIdx; i++)
       {
@@ -13390,8 +13423,11 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
     {
       Int half = pListSort[i].cnt>>1;
       Palette[0][paletteSize] = (pListSort[i].sumData[0]+half)/pListSort[i].cnt;
-      Palette[1][paletteSize] = (pListSort[i].sumData[1]+half)/pListSort[i].cnt;
-      Palette[2][paletteSize] = (pListSort[i].sumData[2]+half)/pListSort[i].cnt;
+      if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+      {
+        Palette[1][paletteSize] = (pListSort[i].sumData[1] + half) / pListSort[i].cnt;
+        Palette[2][paletteSize] = (pListSort[i].sumData[2] + half) / pListSort[i].cnt;
+      }
 
       Int best = -1;
       if( errorLimit )
@@ -13402,16 +13438,22 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
 
         Double err      = pal[0] - Palette[0][paletteSize];
         Double bestCost = (err*err) / ( 1<<(2*DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_LUMA]-8)) );
-        err = pal[1] - Palette[1][paletteSize]; bestCost += (err*err) / ( 1<<(2*DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA]-8)) );
-        err = pal[2] - Palette[2][paletteSize]; bestCost += (err*err) / ( 1<<(2*DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA]-8)) );
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          err = pal[1] - Palette[1][paletteSize]; bestCost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
+          err = pal[2] - Palette[2][paletteSize]; bestCost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
+        }
         bestCost = bestCost * pListSort[i].cnt + bitCost;
 
         for(Int t=0; t<pcCU->getLastPaletteInLcuSizeFinal(0); t++)
         {
           err = pal[0] - pPred[0][t];
           Double cost = (err*err) / ( 1<<(2*DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_LUMA]-8)) );
-          err = pal[1] - pPred[1][t]; cost += (err*err) / ( 1<<(2*DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA]-8)) );
-          err = pal[2] - pPred[2][t]; cost += (err*err) / ( 1<<(2*DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA]-8)) );
+          if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+          {
+            err = pal[1] - pPred[1][t]; cost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
+            err = pal[2] - pPred[2][t]; cost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
+          }
           cost *= pListSort[i].cnt;
           if(cost < bestCost)
           {
@@ -13422,8 +13464,11 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
         if( best != -1 )
         {
           Palette[0][paletteSize] = pPred[0][best];
-          Palette[1][paletteSize] = pPred[1][best];
-          Palette[2][paletteSize] = pPred[2][best];
+          if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+          {
+            Palette[1][paletteSize] = pPred[1][best];
+            Palette[2][paletteSize] = pPred[2][best];
+          }
         }
         paletteIndPred[paletteSize]=best;
       }
@@ -13437,10 +13482,21 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
       {
         for( Int t=0; t<paletteSize; t++)
         {
-          if( Palette[0][paletteSize] == Palette[0][t] && Palette[1][paletteSize] == Palette[1][t] && Palette[2][paletteSize] == Palette[2][t] )
+          if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400)
           {
-            bDuplicate = true;
-            break;
+            if (Palette[0][paletteSize] == Palette[0][t])
+            {
+              bDuplicate = true;
+              break;
+            }
+          }
+          else
+          {
+            if (Palette[0][paletteSize] == Palette[0][t] && Palette[1][paletteSize] == Palette[1][t] && Palette[2][paletteSize] == Palette[2][t])
+            {
+              bDuplicate = true;
+              break;
+            }
           }
         }
       }
@@ -13469,17 +13525,20 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
       pos = y * width + x;
       UInt posC = (y>>scaleY) * (width>>scaleX) + (x>>scaleX);
       UInt bestIdx=0, paletteIdx = 0;
-      Bool discardChroma = y&scaleY || x&scaleX;
+      Bool discardChroma = y&scaleY || x&scaleX || pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400;
       minError = MAX_UINT;
 
       while (paletteIdx < paletteSize)
       {
         Int temp=Palette[0][paletteIdx] - pSrc[0][pos];
         absError = (( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]-8) << 1));
-        temp=Palette[1][paletteIdx] - pSrc[1][posC];
-        absError+=(( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-        temp=Palette[2][paletteIdx] - pSrc[2][posC];
-        absError+=(( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          temp = Palette[1][paletteIdx] - pSrc[1][posC];
+          absError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+          temp = Palette[2][paletteIdx] - pSrc[2][posC];
+          absError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+        }
 
         if (absError < minError)
         {
@@ -13496,7 +13555,12 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
       UInt escape=0;
       if (minError > errorLimitSqr)
       {
-        Pel pOrg[3]={ pSrc[0][pos],  pSrc[1][posC],  pSrc[2][posC]};
+        Pel pOrg[3]={ pSrc[0][pos], 0, 0};
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          pOrg[1] = pSrc[1][posC];
+          pOrg[2] = pSrc[2][posC];
+        }
         UInt errorTemp;
         Double rdCost = xCalcPixelPredRD(pcCU, pOrg, pcCost, &errorTemp);
         if (rdCost<minError)
@@ -13515,7 +13579,7 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
           palettePredSamples[bestIdx][3] += SCM_V0034_PALETTE_CHROMA_SETTINGS*pSrc[2][posC];
           palettePredSamples[bestIdx][4] += SCM_V0034_PALETTE_CHROMA_SETTINGS;
         }
-        else
+        else if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
         {
           palettePredSamples[bestIdx][2] += pSrc[1][posC];
           palettePredSamples[bestIdx][3] += pSrc[2][posC];
@@ -13538,8 +13602,11 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
     if(palettePredSamples[i][0] > 0)
     {
       Palette[0][paletteSizeTemp] = (palettePredSamples[i][1]+palettePredSamples[i][0]/2)/palettePredSamples[i][0];
-      Palette[1][paletteSizeTemp] = (palettePredSamples[i][2]+palettePredSamples[i][4]/2)/palettePredSamples[i][4];
-      Palette[2][paletteSizeTemp] = (palettePredSamples[i][3]+palettePredSamples[i][4]/2)/palettePredSamples[i][4];
+      if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+      {
+        Palette[1][paletteSizeTemp] = (palettePredSamples[i][2] + palettePredSamples[i][4] / 2) / palettePredSamples[i][4];
+        Palette[2][paletteSizeTemp] = (palettePredSamples[i][3] + palettePredSamples[i][4] / 2) / palettePredSamples[i][4];
+      }
 
       Double dMinError = pcCost->getLambda()*(pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]+2*pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]);
 
@@ -13554,10 +13621,13 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
 
             Int temp=Palette[0][paletteSizeTemp] - pSrc[0][pos];
             dMinError += (( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]-8) << 1));
-            temp=Palette[1][paletteSizeTemp] - pSrc[1][posC];
-            dMinError += (( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-            temp=Palette[2][paletteSizeTemp] - pSrc[2][posC];
-            dMinError += (( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
+            if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+            {
+              temp = Palette[1][paletteSizeTemp] - pSrc[1][posC];
+              dMinError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+              temp = Palette[2][paletteSizeTemp] - pSrc[2][posC];
+              dMinError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+            }
           }
         }
       }
@@ -13599,10 +13669,13 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
               UInt posC = (y>>scaleY) * (width>>scaleX) + (x>>scaleX);
               Int temp=pPred[0][testedPalettePred] - pSrc[0][pos];
               absError += (( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]-8) << 1));
-              temp=pPred[1][testedPalettePred] - pSrc[1][posC];
-              absError+=(( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-              temp=pPred[2][testedPalettePred] - pSrc[2][posC];
-              absError+=(( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
+              if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+              {
+                temp = pPred[1][testedPalettePred] - pSrc[1][posC];
+                absError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+                temp = pPred[2][testedPalettePred] - pSrc[2][posC];
+                absError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+              }
             }
           }
           if (absError>dMinError)
@@ -13621,8 +13694,11 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
       if( best != -1 )
       {
         Palette[0][paletteSizeTemp] = pPred[0][best];
-        Palette[1][paletteSizeTemp] = pPred[1][best];
-        Palette[2][paletteSizeTemp] = pPred[2][best];
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          Palette[1][paletteSizeTemp] = pPred[1][best];
+          Palette[2][paletteSizeTemp] = pPred[2][best];
+        }
       }
 
       Bool bDuplicate = false;
@@ -13634,7 +13710,15 @@ Void TEncSearch::xDerivePaletteLossy( TComDataCU* pcCU, Pel *Palette[3], Pel* pS
       {
         for( Int t=0; t<paletteSizeTemp; t++)
         {
-          if( Palette[0][paletteSizeTemp] == Palette[0][t] && Palette[1][paletteSizeTemp] == Palette[1][t] && Palette[2][paletteSizeTemp] == Palette[2][t] )
+          if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400)
+          {
+            if (Palette[0][paletteSizeTemp] == Palette[0][t])
+            {
+              bDuplicate = true;
+              break;
+            }
+          }
+          else if( Palette[0][paletteSizeTemp] == Palette[0][t] && Palette[1][paletteSizeTemp] == Palette[1][t] && Palette[2][paletteSizeTemp] == Palette[2][t] )
           {
             bDuplicate = true;
             break;
@@ -13681,7 +13765,7 @@ Void TEncSearch::xDerivePaletteLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
 
       UInt posC = (y>>scaleY) * (width>>scaleX) + (x>>scaleX);
       Int  localAdjC = distAdjC;
-      Bool discardChroma = y&scaleY || x&scaleX;
+      Bool discardChroma = y&scaleY || x&scaleX || pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400;
       if (discardChroma) localAdjC+=SCM_V0034_PALETTE_CHROMA_SHIFT_ADJ;
 
       bestIdx=0;
@@ -13692,10 +13776,13 @@ Void TEncSearch::xDerivePaletteLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
       {
         Int temp=Palette[0][paletteIdx] - pSrc[0][pos];
         UInt absError = ( temp * temp ) >> distAdjY;
-        temp          = Palette[1][paletteIdx] - pSrc[1][posC];
-        absError     += ( temp * temp ) >> localAdjC;
-        temp          = Palette[2][paletteIdx] - pSrc[2][posC];
-        absError     += ( temp * temp ) >> localAdjC;
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          temp = Palette[1][paletteIdx] - pSrc[1][posC];
+          absError += (temp * temp) >> localAdjC;
+          temp = Palette[2][paletteIdx] - pSrc[2][posC];
+          absError += (temp * temp) >> localAdjC;
+        }
 
         if (absError < minError)
         {
@@ -13713,7 +13800,12 @@ Void TEncSearch::xDerivePaletteLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
       if (minError > errorLimitSqr)
       {
         UInt errorTemp;
-        Pel pOrg[3]={ pSrc[0][pos],  pSrc[1][posC],  pSrc[2][posC]};
+        Pel pOrg[3]={ pSrc[0][pos], 0, 0};
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          pOrg[1] = pSrc[1][posC];
+          pOrg[2] = pSrc[2][posC];
+        }
         Double rdCost = xCalcPixelPredRD(pcCU, pOrg, pcCost, &errorTemp, discardChroma);
 
         if (rdCost<minError)
@@ -13732,7 +13824,7 @@ Void TEncSearch::xDerivePaletteLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
           palettePredSamples[bestIdx][3] += SCM_V0034_PALETTE_CHROMA_SETTINGS*pSrc[2][posC];
           palettePredSamples[bestIdx][4] += SCM_V0034_PALETTE_CHROMA_SETTINGS;
         }
-        else
+        else if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
         {
           palettePredSamples[bestIdx][2] += pSrc[1][posC];
           palettePredSamples[bestIdx][3] += pSrc[2][posC];
@@ -13754,8 +13846,11 @@ Void TEncSearch::xDerivePaletteLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
     if(palettePredSamples[i][0]>0)
     {
       pPaletteTemp[0][paletteSizeTemp] = (palettePredSamples[i][1]+palettePredSamples[i][0]/2)/palettePredSamples[i][0];
-      pPaletteTemp[1][paletteSizeTemp] = (palettePredSamples[i][2]+palettePredSamples[i][4]/2)/palettePredSamples[i][4];
-      pPaletteTemp[2][paletteSizeTemp] = (palettePredSamples[i][3]+palettePredSamples[i][4]/2)/palettePredSamples[i][4];
+      if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+      {
+        pPaletteTemp[1][paletteSizeTemp] = (palettePredSamples[i][2] + palettePredSamples[i][4] / 2) / palettePredSamples[i][4];
+        pPaletteTemp[2][paletteSizeTemp] = (palettePredSamples[i][3] + palettePredSamples[i][4] / 2) / palettePredSamples[i][4];
+      }
 
       noSamples[paletteSizeTemp]=palettePredSamples[i][0];
 
@@ -13774,10 +13869,13 @@ Void TEncSearch::xDerivePaletteLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
             Int  localAdjC = distAdjC;
             if (y&scaleY || x&scaleX) localAdjC+=SCM_V0034_PALETTE_CHROMA_SHIFT_ADJ;
             minError += ( temp * temp ) >> distAdjY;
-            temp      = pPaletteTemp[1][paletteSizeTemp] - pSrc[1][posC];
-            minError += ( temp * temp ) >> localAdjC;
-            temp      = pPaletteTemp[2][paletteSizeTemp] - pSrc[2][posC];
-            minError += ( temp * temp ) >> localAdjC;
+            if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+            {
+              temp = pPaletteTemp[1][paletteSizeTemp] - pSrc[1][posC];
+              minError += (temp * temp) >> localAdjC;
+              temp = pPaletteTemp[2][paletteSizeTemp] - pSrc[2][posC];
+              minError += (temp * temp) >> localAdjC;
+            }
           }
         }
       }
@@ -13804,10 +13902,13 @@ Void TEncSearch::xDerivePaletteLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
               Int  localAdjC = distAdjC;
               if (y&scaleY || x&scaleX) localAdjC+=SCM_V0034_PALETTE_CHROMA_SHIFT_ADJ;
               absError += ( temp * temp ) >> distAdjY;
-              temp      = pPred[1][testedPalettePred] - pSrc[1][posC];
-              absError += ( temp * temp ) >> localAdjC;
-              temp      = pPred[2][testedPalettePred] - pSrc[2][posC];
-              absError += ( temp * temp ) >> localAdjC;
+              if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+              {
+                temp = pPred[1][testedPalettePred] - pSrc[1][posC];
+                absError += (temp * temp) >> localAdjC;
+                temp = pPred[2][testedPalettePred] - pSrc[2][posC];
+                absError += (temp * temp) >> localAdjC;
+              }
             }
           }
           if (absError>minError)
@@ -13826,8 +13927,11 @@ Void TEncSearch::xDerivePaletteLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
       if( best != -1 )
       {
         pPaletteTemp[0][paletteSizeTemp] = pPred[0][best];
-        pPaletteTemp[1][paletteSizeTemp] = pPred[1][best];
-        pPaletteTemp[2][paletteSizeTemp] = pPred[2][best];
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          pPaletteTemp[1][paletteSizeTemp] = pPred[1][best];
+          pPaletteTemp[2][paletteSizeTemp] = pPred[2][best];
+        }
       }
 
       Bool bDuplicate = false;
@@ -13867,12 +13971,18 @@ Void TEncSearch::xDerivePaletteLossyIterative(TComDataCU* pcCU, Pel *Palette[3],
     }
 
     Palette[0][paletteIdx]=pPaletteTemp[0][bestIdx];
-    Palette[1][paletteIdx]=pPaletteTemp[1][bestIdx];
-    Palette[2][paletteIdx]=pPaletteTemp[2][bestIdx];
+    if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+    {
+      Palette[1][paletteIdx] = pPaletteTemp[1][bestIdx];
+      Palette[2][paletteIdx] = pPaletteTemp[2][bestIdx];
+    }
 
     pPaletteTemp[0][bestIdx]=pPaletteTemp[0][paletteIdx];
-    pPaletteTemp[1][bestIdx]=pPaletteTemp[1][paletteIdx];
-    pPaletteTemp[2][bestIdx]=pPaletteTemp[2][paletteIdx];
+    if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+    {
+      pPaletteTemp[1][bestIdx] = pPaletteTemp[1][paletteIdx];
+      pPaletteTemp[2][bestIdx] = pPaletteTemp[2][paletteIdx];
+    }
 
     noSamples[bestIdx]=noSamples[paletteIdx];
   }
@@ -13898,12 +14008,19 @@ Void TEncSearch::xDerivePaletteLossless(TComDataCU* pcCU, Pel *Palette[3], Pel* 
     {
       pos = y * width + x;
       UInt posC = (y>>scaleY) * (width>>scaleX) + (x>>scaleX);
-      Bool discardChroma = y&scaleY || x&scaleX;
+      Bool discardChroma = y&scaleY || x&scaleX || pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400;
       Int  defIdx = -1, defSAD = MAX_INT;
       Int  discIdx = -1, discSAD = MAX_INT;
 
       Int i = 0;
-      sElement.setAll(pSrc[0][pos], pSrc[1][posC], pSrc[2][posC]);
+      if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400)
+      {
+        sElement.setAll(pSrc[0][pos], 0, 0);
+      }
+      else
+      {
+        sElement.setAll(pSrc[0][pos], pSrc[1][posC], pSrc[2][posC]);
+      }
       for (i = idx - 1; i >= 0; i--)
       {
         if( psList[i].data[0] == sElement.data[0] && psList[i].data[1] == sElement.data[1] && psList[i].data[2] == sElement.data[2] )
@@ -13916,7 +14033,7 @@ Void TEncSearch::xDerivePaletteLossless(TComDataCU* pcCU, Pel *Palette[3], Pel* 
           break;
         }
 
-        if( (scaleX||scaleY) && psList[i].data[0] == sElement.data[0] )
+        if( (scaleX||scaleY) && psList[i].data[0] == sElement.data[0] && pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400 )
         {
           Int sad = abs(psList[i].data[1] - pSrc[1][posC]) + abs(psList[i].data[2] - pSrc[2][posC]);
           if( !discardChroma && !psList[i].lastCnt && sad < discSAD )
@@ -13955,7 +14072,7 @@ Void TEncSearch::xDerivePaletteLossless(TComDataCU* pcCU, Pel *Palette[3], Pel* 
   std::stable_sort(psList.begin(), psList.end());
   UInt paletteSizePrev;
   Pel *pPalettePrev[3];
-  for (UInt comp = 0; comp < 3; comp++)
+  for (UInt comp = 0; comp < (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); comp++)
   {
     pPalettePrev[comp] = pcCU->getPalettePred(pcCU, comp, paletteSizePrev);
   }
@@ -13965,7 +14082,7 @@ Void TEncSearch::xDerivePaletteLossless(TComDataCU* pcCU, Pel *Palette[3], Pel* 
     for (Int i = 0; i < idx; i++)
     {
       Bool includeIntoPalette = true;
-      if( (scaleX||scaleY) && psList[i].cnt > 0 && !psList[i].lastCnt ) // Find if it can be replaced
+      if( (scaleX||scaleY) && psList[i].cnt > 0 && !psList[i].lastCnt && pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400) // Find if it can be replaced
       {
         Int bestCand = -1;
         for( UInt idxPrev = 0; idxPrev < paletteSizePrev; idxPrev++ )
@@ -13994,7 +14111,7 @@ Void TEncSearch::xDerivePaletteLossless(TComDataCU* pcCU, Pel *Palette[3], Pel* 
         {
           UInt iCounter = 0;
 
-          for( UInt comp = 0; comp < 3; comp++ )
+          for( UInt comp = 0; comp < (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); comp++ )
           {
             if( psList[i].data[comp] == pPalettePrev[comp][idxPrev] )
             {
@@ -14010,14 +14127,22 @@ Void TEncSearch::xDerivePaletteLossless(TComDataCU* pcCU, Pel *Palette[3], Pel* 
             includeIntoPalette = true;
             break;
           }
+          else if( pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 && iCounter == 1 )
+          {
+            includeIntoPalette = true;
+            break;
+          }
         }
       }
 
       if( includeIntoPalette && psList[i].cnt)
       {
         Palette[0][paletteSize] = psList[i].data[0];
-        Palette[1][paletteSize] = psList[i].data[1];
-        Palette[2][paletteSize] = psList[i].data[2];
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          Palette[1][paletteSize] = psList[i].data[1];
+          Palette[2][paletteSize] = psList[i].data[2];
+        }
         paletteSize++;
         if (paletteSize == pcCU->getSlice()->getSPS()->getSpsScreenExtension().getPaletteMaxSize())
         {
@@ -14079,7 +14204,7 @@ Void TEncSearch::xCalcPixelPred(TComDataCU* pcCU, Pel* pOrg [3], Pel*paPixelValu
 
   if (bLossless)
   {
-    for (UInt ch = 0; ch < MAX_NUM_COMPONENT; ch ++)
+    for (UInt ch = 0; ch < (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); ch ++)
     {
       if( ch == 0 )
       {
@@ -14102,7 +14227,7 @@ Void TEncSearch::xCalcPixelPred(TComDataCU* pcCU, Pel* pOrg [3], Pel*paPixelValu
   else
   {
     BitDepths bitDepths = pcCU->getSlice()->getSPS()->getBitDepths();
-    for (UInt ch = 0; ch < MAX_NUM_COMPONENT; ch ++)
+    for (UInt ch = 0; ch < (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); ch ++)
     {
       if( ch == 0 )
       {
@@ -14375,9 +14500,12 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
       UInt minError = MAX_UINT;
       while( paletteIdx < pcCU->getLastPaletteInLcuSizeFinal(0) )
       {
-        UInt absError = (abs(pPred[0][paletteIdx] - pSrc[0][pos]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_LUMA] - 8))
-                      + (abs(pPred[1][paletteIdx] - pSrc[1][posC]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8))
-                      + (abs(pPred[2][paletteIdx] - pSrc[2][posC]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8));
+        UInt absError = (abs(pPred[0][paletteIdx] - pSrc[0][pos]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_LUMA] - 8));
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          absError += (abs(pPred[1][paletteIdx] - pSrc[1][posC]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8));
+          absError += (abs(pPred[2][paletteIdx] - pSrc[2][posC]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8));
+        }
 
         if( absError < minError )
         {
@@ -14414,8 +14542,11 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
       paletteIndexUsed[bestIndex] = 1;
 
       Palette[0][paletteSize] = pPred[0][bestIndex];
-      Palette[1][paletteSize] = pPred[1][bestIndex];
-      Palette[2][paletteSize] = pPred[2][bestIndex];
+      if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+      {
+        Palette[1][paletteSize] = pPred[1][bestIndex];
+        Palette[2][paletteSize] = pPred[2][bestIndex];
+      }
       paletteSize++;
     }
     else
@@ -14437,9 +14568,12 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
       UInt minError = MAX_UINT;
       while( paletteIdx < paletteSize )
       {
-        UInt absError = (abs(Palette[0][paletteIdx] - pSrc[0][pos]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_LUMA] - 8))
-                        + (abs(Palette[1][paletteIdx] - pSrc[1][posC]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8))
-                        + (abs(Palette[2][paletteIdx] - pSrc[2][posC]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8));
+        UInt absError = (abs(Palette[0][paletteIdx] - pSrc[0][pos]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_LUMA] - 8));
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          absError += (abs(Palette[1][paletteIdx] - pSrc[1][posC]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8));
+          absError += (abs(Palette[2][paletteIdx] - pSrc[2][posC]) >> DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8));
+        }
 
         if (absError < minError)
         {
@@ -14454,7 +14588,14 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
 
       if( minError > errorLimit )
       {
-        sElement.setAll(pSrc[0][pos], pSrc[1][posC], pSrc[2][posC]);
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400)
+        {
+          sElement.setAll(pSrc[0][pos], 0, 0);
+        }
+        else
+        {
+          sElement.setAll(pSrc[0][pos], pSrc[1][posC], pSrc[2][posC]);
+        }
         Int besti = last, bestSAD = (last == -1) ? MAX_UINT : psList[last].getSAD(sElement, pcCU->getSlice()->getSPS()->getBitDepths());
         if (bestSAD)
         {
@@ -14527,8 +14668,11 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
     {
       Int half = pListSort[i].cnt >> 1;
       Palette[0][paletteSize] = (pListSort[i].sumData[0] + half) / pListSort[i].cnt;
-      Palette[1][paletteSize] = (pListSort[i].sumData[1] + half) / pListSort[i].cnt;
-      Palette[2][paletteSize] = (pListSort[i].sumData[2] + half) / pListSort[i].cnt;
+      if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+      {
+        Palette[1][paletteSize] = (pListSort[i].sumData[1] + half) / pListSort[i].cnt;
+        Palette[2][paletteSize] = (pListSort[i].sumData[2] + half) / pListSort[i].cnt;
+      }
 
       Bool bDuplicate = false;
       if( pListSort[i].cnt == 1 )
@@ -14540,14 +14684,20 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
         Int best = -1;
         if( errorLimit )
         {
-          Double pal[3] = { pListSort[i].sumData[0] / (Double)pListSort[i].cnt,
-                            pListSort[i].sumData[1] / (Double)pListSort[i].cnt,
-                            pListSort[i].sumData[2] / (Double)pListSort[i].cnt };
+          Double pal[3] = { pListSort[i].sumData[0] / (Double)pListSort[i].cnt, 0, 0 };
+          if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+          {
+            pal[1] = pListSort[i].sumData[1] / (Double)pListSort[i].cnt;
+            pal[2] = pListSort[i].sumData[2] / (Double)pListSort[i].cnt;
+          }
 
           Double err = pal[0] - Palette[0][paletteSize];
           Double bestCost = (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_LUMA] - 8)));
-          err = pal[1] - Palette[1][paletteSize]; bestCost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
-          err = pal[2] - Palette[2][paletteSize]; bestCost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
+          if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+          {
+            err = pal[1] - Palette[1][paletteSize]; bestCost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
+            err = pal[2] - Palette[2][paletteSize]; bestCost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
+          }
           bestCost = bestCost * pListSort[i].cnt + bitCost;
 
           for( Int t = 0; t < paletteSize; t++ )
@@ -14560,8 +14710,11 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
 
             err = pal[0] - Palette[0][t];
             Double cost = (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_LUMA] - 8)));
-            err = pal[1] - Palette[1][t]; cost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
-            err = pal[2] - Palette[2][t]; cost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
+            if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+            {
+              err = pal[1] - Palette[1][t]; cost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
+              err = pal[2] - Palette[2][t]; cost += (err*err) / (1 << (2 * DISTORTION_PRECISION_ADJUSTMENT(bitDepths.recon[CHANNEL_TYPE_CHROMA] - 8)));
+            }
             cost *= pListSort[i].cnt;
             if( cost < bestCost )
             {
@@ -14595,7 +14748,7 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
   {
     for (UInt x = 0; x < width; x++)
     {
-      Bool discardChroma = y&scaleY || x&scaleX;
+      Bool discardChroma = y&scaleY || x&scaleX || pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400;
       pos = y * width + x;
 
       UInt posC = (y>>scaleY) * (width>>scaleX) + (x>>scaleX);
@@ -14606,10 +14759,13 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
       {
         Int temp=Palette[0][paletteIdx] - pSrc[0][pos];
         UInt absError = (( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]-8) << 1));
-        temp=Palette[1][paletteIdx] - pSrc[1][posC];
-        absError+=(( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-        temp=Palette[2][paletteIdx] - pSrc[2][posC];
-        absError+=(( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          temp = Palette[1][paletteIdx] - pSrc[1][posC];
+          absError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+          temp = Palette[2][paletteIdx] - pSrc[2][posC];
+          absError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+        }
 
         if (absError < minError)
         {
@@ -14626,8 +14782,12 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
       UInt escape=0;
       if (minError > iErrorLimitSqr)
       {
-
-        Pel pOrg[3]={ pSrc[0][pos],  pSrc[1][posC],  pSrc[2][posC]};
+        Pel pOrg[3]={ pSrc[0][pos], 0, 0};
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          pOrg[1]=pSrc[1][posC];
+          pOrg[2]=pSrc[2][posC];
+        }
         UInt errorTemp;
         Double rdCost = xCalcPixelPredRD(pcCU, pOrg, pcCost, &errorTemp);
         if (rdCost<minError)
@@ -14646,7 +14806,7 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
           palettePredSamples[bestIdx][3] += SCM_V0034_PALETTE_CHROMA_SETTINGS*pSrc[2][posC];
           palettePredSamples[bestIdx][4] += SCM_V0034_PALETTE_CHROMA_SETTINGS;
         }
-        else
+        else if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
         {
           palettePredSamples[bestIdx][2] += pSrc[1][posC];
           palettePredSamples[bestIdx][3] += pSrc[2][posC];
@@ -14668,8 +14828,11 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
     if(palettePredSamples[i][0] > 0)
     {
       Palette[0][paletteSizeTemp] = (palettePredSamples[i][1]+palettePredSamples[i][0]/2)/palettePredSamples[i][0];
-      Palette[1][paletteSizeTemp] = (palettePredSamples[i][2]+palettePredSamples[i][4]/2)/palettePredSamples[i][4];
-      Palette[2][paletteSizeTemp] = (palettePredSamples[i][3]+palettePredSamples[i][4]/2)/palettePredSamples[i][4];
+      if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+      {
+        Palette[1][paletteSizeTemp] = (palettePredSamples[i][2] + palettePredSamples[i][4] / 2) / palettePredSamples[i][4];
+        Palette[2][paletteSizeTemp] = (palettePredSamples[i][3] + palettePredSamples[i][4] / 2) / palettePredSamples[i][4];
+      }
 
       Double minError = pcCost->getLambda()*(pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA] + 2 * pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]);
       Double absError;
@@ -14685,10 +14848,13 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
 
             Int temp=Palette[0][paletteSizeTemp] - pSrc[0][pos];
             minError += (( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]-8) << 1));
-            temp=Palette[1][paletteSizeTemp] - pSrc[1][posC];
-            minError+=(( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-            temp=Palette[2][paletteSizeTemp] - pSrc[2][posC];
-            minError+=(( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
+            if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+            {
+              temp = Palette[1][paletteSizeTemp] - pSrc[1][posC];
+              minError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+              temp = Palette[2][paletteSizeTemp] - pSrc[2][posC];
+              minError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+            }
           }
         }
       }
@@ -14713,10 +14879,13 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
 
               Int temp=pPred[0][testedPalettePred] - pSrc[0][pos];
               absError += (( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_LUMA]-8) << 1));
-              temp=pPred[1][testedPalettePred] - pSrc[1][posC];
-              absError+=(( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
-              temp=pPred[2][testedPalettePred] - pSrc[2][posC];
-              absError+=(( temp * temp ) >>  DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA]-8) << 1));
+              if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+              {
+                temp = pPred[1][testedPalettePred] - pSrc[1][posC];
+                absError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+                temp = pPred[2][testedPalettePred] - pSrc[2][posC];
+                absError += ((temp * temp) >> DISTORTION_PRECISION_ADJUSTMENT((pcCU->getSlice()->getSPS()->getBitDepths().recon[CHANNEL_TYPE_CHROMA] - 8) << 1));
+              }
             }
           }
           if (absError>minError)
@@ -14735,8 +14904,11 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
       if( best != -1 )
       {
         Palette[0][paletteSizeTemp] = pPred[0][best];
-        Palette[1][paletteSizeTemp] = pPred[1][best];
-        Palette[2][paletteSizeTemp] = pPred[2][best];
+        if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() != CHROMA_400)
+        {
+          Palette[1][paletteSizeTemp] = pPred[1][best];
+          Palette[2][paletteSizeTemp] = pPred[2][best];
+        }
       }
 
 
@@ -14749,7 +14921,15 @@ Void TEncSearch::xDerivePaletteLossyForcePrediction(TComDataCU *pcCU, Pel *Palet
       {
         for( Int t=0; t<paletteSizeTemp; t++)
         {
-          if( Palette[0][paletteSizeTemp] == Palette[0][t] && Palette[1][paletteSizeTemp] == Palette[1][t] && Palette[2][paletteSizeTemp] == Palette[2][t] )
+          if (pcCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400)
+          {
+            if (Palette[0][paletteSizeTemp] == Palette[0][t])
+            {
+              bDuplicate = true;
+              break;
+            }
+          }
+          else if( Palette[0][paletteSizeTemp] == Palette[0][t] && Palette[1][paletteSizeTemp] == Palette[1][t] && Palette[2][paletteSizeTemp] == Palette[2][t] )
           {
             bDuplicate = true;
             break;

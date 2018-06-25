@@ -136,7 +136,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream** ppcSubstreams, TComPic* pcP
       if ( pCurrentTile->getTileWidthInCtus() >= 2 || !wavefrontsEnabled)
       {
         pcSbacDecoder->loadContexts(&m_lastSliceSegmentEndContextState);
-        for ( UChar comp = 0; comp < MAX_NUM_COMPONENT; comp++ )
+        for ( UChar comp = 0; comp < (pcSlice->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); comp++ )
         {
           lastPaletteSize[comp] = m_lastSliceSegmentEndPaletteState.lastPaletteSize[comp];
           for ( UInt idx = 0; idx < pcSlice->getSPS()->getSpsScreenExtension().getPaletteMaxPredSize(); idx++ )
@@ -206,7 +206,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream** ppcSubstreams, TComPic* pcP
         {
           // Top-right is available, so use it.
           pcSbacDecoder->loadContexts( &m_entropyCodingSyncContextState );
-          for ( UChar comp = 0; comp < MAX_NUM_COMPONENT; comp++ )
+          for ( UChar comp = 0; comp < (pcSlice->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); comp++ )
           {
             lastPaletteSize[comp] = m_entropyCodingSyncPaletteState.lastPaletteSize[comp];
             for ( UInt idx = 0; idx < pcSlice->getSPS()->getSpsScreenExtension().getPaletteMaxPredSize(); idx++ )
@@ -218,7 +218,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream** ppcSubstreams, TComPic* pcP
       }
     }
 
-    for (UChar comp = 0; comp < MAX_NUM_COMPONENT; comp++)
+    for (UChar comp = 0; comp < (pcSlice->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); comp++)
     {
       pCtu->setLastPaletteInLcuSizeFinal(comp, lastPaletteSize[comp]);
       for ( UInt idx = 0; idx < pcSlice->getSPS()->getSpsScreenExtension().getPaletteMaxPredSize(); idx++ )
@@ -286,7 +286,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream** ppcSubstreams, TComPic* pcP
 
     if( pCtu->getLastPaletteInLcuSizeFinal( COMPONENT_Y ) )
     {
-      for (UChar comp = 0; comp < MAX_NUM_COMPONENT; comp++)
+      for (UChar comp = 0; comp < (pCtu->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); comp++)
       {
         lastPaletteSize[comp] = pCtu->getLastPaletteInLcuSizeFinal(comp);
 
@@ -305,7 +305,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream** ppcSubstreams, TComPic* pcP
     if ( ctuXPosInCtus == tileXPosInCtus+1 && wavefrontsEnabled)
     {
       m_entropyCodingSyncContextState.loadContexts( pcSbacDecoder );
-      for ( UChar comp = 0; comp < MAX_NUM_COMPONENT; comp++ )
+      for ( UChar comp = 0; comp < (pcSlice->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1: 3); comp++ )
       {
         m_entropyCodingSyncPaletteState.lastPaletteSize[comp] = lastPaletteSize[comp];
         for ( UInt idx = 0; idx < pcSlice->getSPS()->getSpsScreenExtension().getPaletteMaxPredSize(); idx++ )
@@ -348,7 +348,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream** ppcSubstreams, TComPic* pcP
   if( depSliceSegmentsEnabled )
   {
     m_lastSliceSegmentEndContextState.loadContexts( pcSbacDecoder );//ctx end of dep.slice
-    for ( UChar comp = 0; comp < MAX_NUM_COMPONENT; comp++ )
+    for ( UChar comp = 0; comp < (pcSlice->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1: 3); comp++ )
     {
       m_lastSliceSegmentEndPaletteState.lastPaletteSize[comp] = lastPaletteSize[comp];
       for ( UInt idx = 0; idx < pcSlice->getSPS()->getSpsScreenExtension().getPaletteMaxPredSize(); idx++ )
@@ -370,7 +370,7 @@ Void TDecSlice::xSetPredFromPPS(Pel lastPalette[MAX_NUM_COMPONENT][MAX_PALETTE_P
     return;
   }
 
-  for(int i=0; i<3; i++)
+  for(int i=0; i<(pcSPS->getChromaFormatIdc() == CHROMA_400 ? 1: 3); i++)
   {
     lastPaletteSize[i] = num;
     memcpy(lastPalette[i], pcPPS->getPpsScreenExtension().getPalettePred(i), num*sizeof(Pel));
@@ -386,7 +386,7 @@ Void TDecSlice::xSetPredFromSPS(Pel lastPalette[MAX_NUM_COMPONENT][MAX_PALETTE_P
     return;
   }
 
-  for(int i=0; i<3; i++)
+  for(int i=0; i<(pcSPS->getChromaFormatIdc() == CHROMA_400 ? 1: 3); i++)
   {
     lastPaletteSize[i] = num;
     memcpy(lastPalette[i], pcSPS->getSpsScreenExtension().getPalettePred(i), num*sizeof(Pel));
@@ -395,7 +395,7 @@ Void TDecSlice::xSetPredFromSPS(Pel lastPalette[MAX_NUM_COMPONENT][MAX_PALETTE_P
 
 Void TDecSlice::xSetPredDefault(Pel lastPalette[MAX_NUM_COMPONENT][MAX_PALETTE_PRED_SIZE], UChar lastPaletteSize[MAX_NUM_COMPONENT], const TComSPS *pcSPS)
 {
-  for(int i=0; i<3; i++)
+  for(int i=0; i<(pcSPS->getChromaFormatIdc() == CHROMA_400 ? 1: 3); i++)
   {
     lastPaletteSize[i] = 0;
     memset(lastPalette[i],0, pcSPS->getSpsScreenExtension().getPaletteMaxSize()*sizeof(Pel));

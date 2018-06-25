@@ -1474,7 +1474,6 @@ Bool TAppEncCfg::parseCfg( Int argc, TChar* argv[] )
       }
       break;
     case Profile::MAINREXT:
-    case Profile::MAINSCC:
       {
         if (m_bitDepthConstraint == 0 && tmpConstraintChromaFormat == 0)
         {
@@ -1523,6 +1522,43 @@ Bool TAppEncCfg::parseCfg( Int argc, TChar* argv[] )
         }
       }
       break;
+    case Profile::MAINSCC:
+    {
+      if (m_bitDepthConstraint == 0 && tmpConstraintChromaFormat == 0)
+      {
+        int tmpMaximumBitDepth = m_chromaFormatIDC==CHROMA_400 ? m_internalBitDepth[CHANNEL_TYPE_LUMA] : std::max(m_internalBitDepth[CHANNEL_TYPE_LUMA], m_internalBitDepth[CHANNEL_TYPE_CHROMA]);
+        if (tmpMaximumBitDepth <= 8)
+        {
+          m_bitDepthConstraint = 8;
+        }
+        else if (tmpMaximumBitDepth <= 10)
+        {
+          m_bitDepthConstraint = 10;
+        }
+        else if (tmpMaximumBitDepth <= 14)
+        {
+          m_bitDepthConstraint = 14;
+        }
+        if (m_chromaFormatIDC == CHROMA_420)
+        {
+          m_chromaFormatConstraint = CHROMA_420;
+        }
+        else
+        {
+          m_chromaFormatConstraint = CHROMA_444;
+        }
+      }
+      else if (m_bitDepthConstraint == 0 || tmpConstraintChromaFormat == 0)
+      {
+        fprintf(stderr, "Error: The bit depth and chroma format constraints must either both be specified or both be configured automatically\n");
+        exit(EXIT_FAILURE);
+      }
+      else
+      {
+        m_chromaFormatConstraint = numberToChromaFormat(tmpConstraintChromaFormat);
+      }
+    }
+    break;
     case Profile::MAIN:
     case Profile::MAIN10:
     case Profile::MAINSTILLPICTURE:
@@ -2069,14 +2105,6 @@ Void TAppEncCfg::xCheckParameter()
     m_useColourTrans = false;
   }
 
-  if (m_usePaletteMode && !(m_chromaFormatIDC == CHROMA_444 || m_chromaFormatIDC == CHROMA_422 || m_chromaFormatIDC == CHROMA_420))
-  {
-    fprintf(stderr, "*******************************************************************************\n");
-    fprintf(stderr, "** WARNING: Palette mode is supported for 4:4:4, 4:2:2 and 4:2:0 format only **\n");
-    fprintf(stderr, "*******************************************************************************\n");
-
-    m_usePaletteMode = false;
-  }
   if (m_usePaletteMode && !(m_profile == Profile::MAINSCC || m_profile == Profile::HIGHTHROUGHPUTSCC))
   {
     fprintf(stderr, "***************************************************************************\n");

@@ -245,7 +245,7 @@ Void TEncCu::compressCtu( TComDataCU* pCtu, UChar* lastPaletteSize, Pel lastPale
   m_ppcBestCU[0]->initCtu( pCtu->getPic(), pCtu->getCtuRsAddr() );
   m_ppcTempCU[0]->initCtu( pCtu->getPic(), pCtu->getCtuRsAddr() );
 
-  for (UChar comp = 0; comp < MAX_NUM_COMPONENT; comp++)
+  for (UChar comp = 0; comp < (pCtu->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3); comp++)
   {
     m_ppcBestCU[0]->setLastPaletteInLcuSizeFinal(comp, lastPaletteSize[comp]);
     m_ppcTempCU[0]->setLastPaletteInLcuSizeFinal(comp, lastPaletteSize[comp]);
@@ -1194,7 +1194,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
     } // is inter
     if (rpcBestCU->getPaletteModeFlag(0))
     {
-      rpcBestCU->saveLastPaletteInLcuFinal( rpcBestCU, 0, MAX_NUM_COMPONENT );
+      rpcBestCU->saveLastPaletteInLcuFinal( rpcBestCU, 0, rpcBestCU->getSlice()->getSPS()->getChromaFormatIdc() == CHROMA_400 ? 1 : 3 );
     }
 
     if( rpcBestCU->getTotalCost()!=MAX_DOUBLE )

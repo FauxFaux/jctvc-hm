@@ -440,7 +440,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
                 {
                   for ( Int j=0; j<ppsScreenExtension.getNumPalettePred(); j++ )
                   {
-  #if RExt__DECODER_DEBUG_BIT_STATISTICS
+  #if RExt__DECODER_DEBUG_BIT_STATISTICS || ENC_DEC_TRACE
                     xReadCode( ppsScreenExtension.getPalettePredictorBitDepth( toChannelType( ComponentID( k ) ) ), uiCode, "palette_predictor_initializers" );
   #else
                     xReadCode( ppsScreenExtension.getPalettePredictorBitDepth( toChannelType( ComponentID( k ) ) ), uiCode );
@@ -998,7 +998,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
                   {
                     for ( Int j=0; j< screenExtension.getNumPalettePred(); j++ )
                     {
-#if RExt__DECODER_DEBUG_BIT_STATISTICS
+#if RExt__DECODER_DEBUG_BIT_STATISTICS || ENC_DEC_TRACE
                       xReadCode(  pcSPS->getBitDepth( toChannelType( ComponentID( k ) ) ), uiCode, "palette_predictor_initializers" );
 #else
                       xReadCode(  pcSPS->getBitDepth( toChannelType( ComponentID( k ) ) ), uiCode );
@@ -2035,7 +2035,7 @@ Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 {
   Int  iDQp;
 
-#if RExt__DECODER_DEBUG_BIT_STATISTICS
+#if RExt__DECODER_DEBUG_BIT_STATISTICS || ENC_DEC_TRACE 
   READ_SVLC(iDQp, "delta_qp");
 #else
   xReadSvlc( iDQp );
