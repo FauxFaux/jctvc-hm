@@ -1871,6 +1871,14 @@ Void TDecCavlc::parseProfileTier(ProfileTierLevel *ptl, const Bool /*bIsSubLayer
         ptl->getProfileIdc() == Profile::HIGHTHROUGHPUTSCC  || ptl->getProfileCompatibilityFlag(Profile::HIGHTHROUGHPUTSCC))
     {
       READ_FLAG(    uiCode, PTL_TRACE_TEXT("max_14bit_constraint_flag"       )); if (uiCode && maxBitDepth>14) maxBitDepth=14;
+      if (!ptl->getIntraConstraintFlag())
+      {
+        if (uiCode == 0)
+        {
+          printf("Warning: max_14bit_constraint_flag must be 1 for non-Intra High Throughput profiles,\n\
+                  Screen-Extended profiles and Screen-Extended High Throughput profiles.\n");
+        }
+      }
       READ_CODE(16, uiCode, PTL_TRACE_TEXT("reserved_zero_33bits[0..15]"     ));
       READ_CODE(16, uiCode, PTL_TRACE_TEXT("reserved_zero_33bits[16..31]"    ));
       READ_FLAG(    uiCode, PTL_TRACE_TEXT("reserved_zero_33bits[32]"        ));
